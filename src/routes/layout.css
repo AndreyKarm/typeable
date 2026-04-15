@@ -1,0 +1,164 @@
+:root {
+	--bg-color: #1e1e2e;
+	--card-bg: #262638;
+	--text-main: #cdd6f4;
+	--text-muted: #a6adc8;
+	--accent: #89b4fa; /* Blue for primary actions */
+	--success: #a6e3a1; /* Green for success/stats */
+	--warning: #f9e2af; /* Yellow for AI alerts */
+	--danger: #f38ba8;
+	--font-ui: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	--font-mono: 'Roboto Mono', 'Fira Code', monospace;
+}
+
+* {
+	box-sizing: border-box;
+	line-height: 1.6;
+	font-family: var(--font-ui), sans-serif;
+	color: var(--text-main);
+	transition: color 0.2s ease-in-out;
+}
+
+body {
+	background-color: var(--bg-color);
+	color: var(--text-color);
+	height: 100vh;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline !important;
+	color: var(--accent);
+}
+
+small {
+	font-size: 12px;
+	font-weight: 400;
+}
+
+.container {
+	max-width: 75em;
+	margin: 0 auto;
+	margin-top: 1rem;
+	padding: 0 2em;
+
+	display: flex;
+	/* justify-content: center; */
+	/* align-items: center; */
+	flex-direction: column;
+	width: 100%;
+	border-radius: 1rem;
+	margin-bottom: 1rem;
+}
+
+/* Button */
+button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.6rem 1.2rem;
+	border-radius: 0.5rem;
+	border: none;
+
+	font-family: var(--font-ui);
+	font-weight: 600;
+	font-size: 1rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05rem;
+
+	background-color: var(--accent);
+	color: var(--bg-color);
+	cursor: pointer;
+	transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+	filter: brightness(1.2);
+	transform: translateY(-2px);
+}
+
+button:active {
+	transform: translateY(0);
+}
+
+/* Form */
+form {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+
+label {
+	display: flex;
+	flex-direction: column;
+}
+
+input,
+textarea,
+input,
+select {
+	outline: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+input,
+select,
+textarea {
+	padding: 0.75rem;
+	border-radius: 0.5rem;
+	border: 1px solid var(--color-border);
+	background-color: var(--card-bg);
+	color: var(--color-text);
+	font-family: inherit;
+	font-size: 14px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+	outline: none;
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary), transparent 30%);
+}
+
+textarea {
+	color: var(--color-text);
+	resize: vertical;
+}
+
+/* For Firefox: standard modern property */
+html {
+	scrollbar-width: thin; /* options: auto | thin | none */
+	scrollbar-color: #333 var(--color-bg); /* thumb color, track color */
+}
+
+/* For Chrome, Edge, and Safari: Webkit styling */
+::-webkit-scrollbar {
+	width: 10px; /* Width of the vertical scrollbar */
+	height: 10px; /* Height of the horizontal scrollbar */
+}
+
+::-webkit-scrollbar-track {
+	background: #16161a; /* Background of the track */
+}
+
+::-webkit-scrollbar-thumb {
+	background: #333; /* Color of the handle */
+	border-radius: 5px; /* Optional: rounded corners */
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #333; /* Color of the handle on hover */
+}
