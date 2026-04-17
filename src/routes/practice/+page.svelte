@@ -1,44 +1,65 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
 
-	const totalTime = 30; // Seconds
+	const totalTime = 30;
 
-	let chars = $state<{ char: string; status: 'untyped' | 'correct' | 'incorrect' }[]>([]);
+	type CharObj = { char: string; status: 'untyped' | 'correct' | 'incorrect' };
+	type Mistake = { char: string; typed: string; timestamp: Date };
+
+	let formElement = $state<HTMLFormElement | undefined>(undefined);
+	let hasSubmitted = $state(false);
+	let chars = $state<CharObj[]>([]);
 	let currentIndex = $state(0);
-	let mistakes = $state<{ char: string; typed: string; timestamp: Date }[]>([]);
+	let mistakes = $state<Mistake[]>([]);
 	let timeLeft = $state(totalTime);
 	let isStarted = $state(false);
+	let isPaused = $state(false);
 	let totalTyped = $state(0);
-	let timerInterval: ReturnType<typeof setInterval>;
+	let timerInterval: ReturnType<typeof setInterval> | undefined;
 
-	// Split text into an array of characters
-	$effect(() => {
-		chars = data.exercise.content.split('').map((c) => ({ char: c, status: 'untyped' }));
-		currentIndex = 0;
-		mistakes = [];
-		timeLeft = totalTime;
-		totalTyped = 0;
-		isStarted = false;
-	});
-
-	// Calculated Stats
+	// Derived stats — declared before effects that reference them
 	let accuracy = $derived(
 		totalTyped > 0
 			? Math.max(0, Math.round(((totalTyped - mistakes.length) / totalTyped) * 100))
 			: 100
 	);
-
 	let elapsedTime = $derived((totalTime - timeLeft) / 60);
 	let wpm = $derived(
 		elapsedTime > 0 ? Math.round((totalTyped - mistakes.length) / 5 / elapsedTime) : 0
 	);
-
 	let isFinished = $derived(timeLeft === 0 || currentIndex >= chars.length);
 
+	function resetState() {
+		clearInterval(timerInterval);
+		chars = data.exercise.content
+			.split('')
+			.map((c: string) => ({ char: c, status: 'untyped' as const }));
+		currentIndex = 0;
+		mistakes = [];
+		timeLeft = totalTime;
+		totalTyped = 0;
+		isStarted = false;
+		isPaused = false;
+		hasSubmitted = false;
+	}
+
+	$effect(() => {
+		if (isFinished) clearInterval(timerInterval);
+	});
+
+	$effect(() => {
+		if (isFinished && !hasSubmitted && formElement) {
+			hasSubmitted = true;
+			formElement.requestSubmit();
+		}
+	});
+
 	function startTimer() {
-		if (isStarted) return;
+		if (isStarted || isPaused) return;
 		isStarted = true;
 		timerInterval = setInterval(() => {
 			if (timeLeft > 0) {
@@ -49,11 +70,29 @@
 		}, 1000);
 	}
 
+	function togglePause() {
+		if (!isStarted || isFinished) return;
+		if (isPaused) {
+			isPaused = false;
+			timerInterval = setInterval(() => {
+				if (timeLeft > 0) timeLeft--;
+				else clearInterval(timerInterval);
+			}, 1000);
+		} else {
+			isPaused = true;
+			clearInterval(timerInterval);
+		}
+	}
+
 	function handleKeydown(event: KeyboardEvent) {
-		if (isFinished) return;
+		if (event.key === 'Escape') {
+			togglePause();
+			return;
+		}
+
+		if (isFinished || isPaused) return;
 
 		const key = event.key;
-		// Allow alphanumeric, space, punctuation, etc.
 		if (key.length > 1 && key !== 'Backspace') return;
 
 		startTimer();
@@ -61,7 +100,14 @@
 		if (key === 'Backspace') {
 			if (currentIndex > 0) {
 				currentIndex--;
-				chars[currentIndex].status = 'untyped';
+				const prev = chars[currentIndex];
+				if (prev.status !== 'untyped') {
+					totalTyped = Math.max(0, totalTyped - 1);
+					if (prev.status === 'incorrect') {
+						mistakes = mistakes.slice(0, -1);
+					}
+					prev.status = 'untyped';
+				}
 			}
 			return;
 		}
@@ -79,12 +125,6 @@
 		currentIndex++;
 	}
 
-	$effect(() => {
-		if (isFinished) {
-			clearInterval(timerInterval);
-		}
-	});
-
 	onMount(() => {
 		window.addEventListener('keydown', handleKeydown);
 		return () => {
@@ -94,10 +134,21 @@
 	});
 </script>
 
+<form bind:this={formElement} method="post" action="?/save" use:enhance>
+	<input type="hidden" name="wpm" value={wpm} />
+	<input type="hidden" name="accuracy" value={accuracy} />
+	<input type="hidden" name="exerciseId" value={data.exercise.id} />
+	<input type="hidden" name="errors" value={JSON.stringify(mistakes)} />
+</form>
+
 <div class="container">
 	<div class="focus-prompt">
 		{#if isFinished}
 			TEST FINISHED
+		{:else if isPaused}
+			PAUSED — PRESS ESC TO RESUME
+		{:else if !isStarted}
+			START TYPING TO BEGIN
 		{:else}
 			PRESS ESC TO PAUSE
 		{/if}
@@ -118,23 +169,31 @@
 		</div>
 	</div>
 
-	<div class="typing-area">
+	<div class="typing-area" class:paused={isPaused}>
 		{#each chars as charObj, i (i)}
 			<span class={charObj.status + (i === currentIndex ? ' active' : '')}>
 				{charObj.char}
 			</span>
 		{/each}
 	</div>
+
+	<div class="controls">
+		{#if isFinished}
+			<button onclick={resetState}>Restart</button>
+			<button onclick={() => invalidateAll()}>Next Exercise</button>
+		{/if}
+	</div>
 </div>
 
 <style>
 	.container {
+		display: flex;
+		flex-direction: column;
 		align-items: center;
 		justify-content: center;
 		height: 100%;
 	}
 
-	/* Heads Up Display */
 	.hud {
 		display: flex;
 		gap: 3rem;
@@ -160,19 +219,24 @@
 		line-height: 1.6;
 		position: relative;
 		text-align: center;
+		transition: opacity 0.2s ease;
 	}
 
-	/* Specific Classes for Highlighting */
+	.typing-area.paused {
+		opacity: 0.2;
+		user-select: none;
+	}
+
 	.untyped {
 		color: #585b70;
 	}
 
 	.correct {
-		color: var(--text-main); /* Light white for correct */
+		color: var(--text-main);
 	}
 
 	.incorrect {
-		color: #f38ba8; /* Red for errors */
+		color: #f38ba8;
 		text-decoration: underline;
 	}
 
@@ -181,7 +245,6 @@
 		position: relative;
 	}
 
-	/* The Blinking Cursor */
 	.active::before {
 		content: '';
 		position: absolute;
@@ -209,6 +272,16 @@
 		font-family: sans-serif;
 		font-size: 0.8rem;
 		color: #45475a;
+		letter-spacing: 1px;
+	}
+
+	.controls {
+		position: absolute;
+		bottom: 5rem;
+		display: flex;
+		gap: 1rem;
+		font-family: sans-serif;
+		font-size: 0.8rem;
 		letter-spacing: 1px;
 	}
 </style>

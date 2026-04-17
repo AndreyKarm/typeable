@@ -2,13 +2,35 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import logo from '$lib/assets/favicon.svg';
+	import { onMount } from 'svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { slide } from 'svelte/transition';
 
 	let { user }: { user: App.Locals['user'] } = $props();
 
 	let isOpen = $state(false);
+	let menuContainer: HTMLElement | null = $state(null);
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') isOpen = false;
+	}
+
+	onMount(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			// If menu is open, and the click target is NOT inside our container
+			if (isOpen && menuContainer && !menuContainer.contains(event.target as Node)) {
+				isOpen = false;
+			}
+		};
+
+		document.addEventListener('click', handleClickOutside);
+
+		// Cleanup when component is destroyed
+		return () => document.removeEventListener('click', handleClickOutside);
+	});
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <header>
 	<nav class="container">
@@ -25,7 +47,7 @@
 			<a href={resolve('/leaderboard')}>Leaderboard</a>
 		</div>
 
-		<div class="user-menu-container">
+		<div class="user-menu-container" bind:this={menuContainer}>
 			<button
 				class="user-profile"
 				onclick={() => (user ? (isOpen = !isOpen) : null)}
@@ -38,6 +60,9 @@
 				<div class="dropdown" transition:slide={{ duration: 300, easing: cubicOut }}>
 					<a href={resolve('/profile')}>Profile</a>
 					<a href={resolve('/options')}>Options</a>
+					{#if user?.role === 'admin'}
+						<a href={resolve('/admin')} style="color: var(--accent);">Admin Panel</a>
+					{/if}
 					<hr />
 					<form method="post" action="?/signOut" use:enhance>
 						<button class="danger">Sign out</button>
@@ -49,6 +74,20 @@
 </header>
 
 <style>
+	header {
+		position: absolute;
+		top: 0;
+		display: flex;
+		align-items: center;
+		width: 100%;
+		min-height: 4rem;
+		padding: 0 1rem;
+		border-bottom: 1px solid var(--card-bg);
+		z-index: 2;
+		background-color: var(--bg-color);
+		backdrop-filter: blur(10px) opacity(0.8);
+	}
+
 	.container {
 		margin: 0.2rem auto;
 		display: flex;
@@ -56,15 +95,6 @@
 		justify-content: space-between;
 		align-items: center;
 		width: 90%;
-	}
-
-	header {
-		display: flex;
-		align-items: center;
-		width: 100%;
-		min-height: 4rem;
-		padding: 0 1rem;
-		border-bottom: 1px solid var(--card-bg);
 	}
 
 	.links {

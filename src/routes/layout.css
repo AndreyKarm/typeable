@@ -29,6 +29,13 @@ body {
 	align-items: center;
 }
 
+h1,
+h2,
+h3 {
+	margin: 0;
+	padding: 0;
+}
+
 a {
 	text-decoration: none;
 }
@@ -56,6 +63,12 @@ small {
 	width: 100%;
 	border-radius: 1rem;
 	margin-bottom: 1rem;
+}
+
+.panel {
+	width: 100%;
+	border-radius: 1rem;
+	background-color: var(--card-bg);
 }
 
 /* Button */
@@ -93,6 +106,15 @@ form {
 	display: flex;
 	flex-direction: column;
 	gap: 1.5rem;
+}
+
+textarea {
+	min-height: 4rem;
+}
+
+input {
+	width: 100%;
+	background-color: var(--bg-color);
 }
 
 label {

@@ -5,7 +5,7 @@ import type { User, Session } from 'better-auth/minimal';
 declare global {
 	namespace App {
 		interface Locals {
-			user: (User & { role: 'user' | 'admin' }) | null;
+			user: (User & { role: 'user' | 'admin' | 'moderator' }) | null;
 			session?: Session | null;
 		}
 

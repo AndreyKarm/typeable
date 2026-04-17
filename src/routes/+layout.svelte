@@ -19,11 +19,12 @@
 
 <style>
 	.page-wrapper {
+		margin-top: 4rem;
 		flex-grow: 1;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		justify-content: center;
+		/* justify-content: center; */
 		width: 100%;
 	}
 </style>
