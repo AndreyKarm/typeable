@@ -21,7 +21,6 @@
 	let totalTyped = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | undefined;
 
-	// Derived stats — declared before effects that reference them
 	let accuracy = $derived(
 		totalTyped > 0
 			? Math.max(0, Math.round(((totalTyped - mistakes.length) / totalTyped) * 100))
@@ -46,6 +45,10 @@
 		isPaused = false;
 		hasSubmitted = false;
 	}
+
+	$effect(() => {
+		resetState();
+	});
 
 	$effect(() => {
 		if (isFinished) clearInterval(timerInterval);
@@ -134,7 +137,16 @@
 	});
 </script>
 
-<form bind:this={formElement} method="post" action="?/save" use:enhance>
+<form
+	bind:this={formElement}
+	method="post"
+	action="?/save"
+	use:enhance={() => {
+		return async ({ update }) => {
+			await update({ invalidateAll: false });
+		};
+	}}
+>
 	<input type="hidden" name="wpm" value={wpm} />
 	<input type="hidden" name="accuracy" value={accuracy} />
 	<input type="hidden" name="exerciseId" value={data.exercise.id} />
@@ -254,6 +266,11 @@
 		width: 2px;
 		background-color: #f5e0dc;
 		animation: blink 1s infinite;
+	}
+
+	button {
+		background-color: transparent;
+		color: var(--text-main);
 	}
 
 	@keyframes blink {
