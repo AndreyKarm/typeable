@@ -1,7 +1,8 @@
 import { db } from '$lib/server/db';
 import {
   exercise,
-  typingSession
+  typingSession,
+  userStats
 } from '$lib/server/db/typeable.schema';
 import { error, fail, type Actions } from '@sveltejs/kit';
 import { eq, sql } from 'drizzle-orm';
@@ -29,11 +30,16 @@ export const actions: Actions = {
     const exerciseId = Number(formData.get('exerciseId'));
     const errors = JSON.parse(String(formData.get('errors') ?? '[]'));
 
+    // Calculate how many characters were typed in this session
+    // This is needed for totalTyped
+    const charCount = Number(formData.get('charCount')) || 0;
+
     if ([wpm, accuracy, exerciseId].some(isNaN)) {
       return fail(400, { message: 'Invalid stats' });
     }
 
     await db.transaction(async (tx) => {
+      // 1. Save Session
       await tx.insert(typingSession).values({
         userId: locals.user!.id,
         exerciseId,
@@ -42,10 +48,29 @@ export const actions: Actions = {
         errors
       });
 
+      // 2. Update Exercise Metrics
       await tx
         .update(exercise)
         .set({ timesPlayed: sql`${exercise.timesPlayed} + 1` })
         .where(eq(exercise.id, exerciseId));
+
+      // 3. Update User Stats (Upsert)
+      await tx
+        .insert(userStats)
+        .values({
+          userId: locals.user!.id,
+          totalTyped: charCount,
+          avgWpm: wpm // Initial value if insert happens
+        })
+        .onConflictDoUpdate({
+          target: userStats.userId,
+          set: {
+            totalTyped: sql`${userStats.totalTyped} + ${charCount}`,
+            // Simple moving average formula: (oldAvg * count + newWpm) / (count + 1)
+            // Or just a simple average for now:
+            avgWpm: sql`(${userStats.avgWpm} + ${wpm}) / 2`
+          }
+        });
     });
 
     return { success: true };

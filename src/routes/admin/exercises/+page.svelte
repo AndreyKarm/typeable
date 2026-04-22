@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import type { ActionData, PageData } from './$types';
+	import ModalConfirm from '$lib/components/ModalConfirm.svelte';
+	import type { ActionData, PageData, SubmitFunction } from './$types';
 	import Icon from '@iconify/svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -8,29 +9,74 @@
 	let search = $state('');
 	let editingId = $state<number | null>(null);
 	let formContent = $state('');
+	let formTime = $state(30);
+
+	let deleteTarget = $state<number | null>(null);
+	let deleteForm: HTMLFormElement;
 
 	const filtered = $derived(
 		data.exercises.filter((e) => e.content.toLowerCase().includes(search.toLowerCase()))
 	);
 
-	function startEdit(item: { id: number; content: string }) {
+	function startEdit(item: { id: number; content: string; time: number }) {
 		editingId = item.id;
 		formContent = item.content;
+		formTime = item.time;
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 
 	function cancelEdit() {
 		editingId = null;
 		formContent = '';
+		formTime = 30;
 	}
 
 	$effect(() => {
 		if (form?.success) {
 			formContent = '';
+			formTime = 30;
 			editingId = null;
 		}
 	});
+
+	const handleEnhance: SubmitFunction = () => {
+		return async ({ result, update }) => {
+			if (result.type === 'success') {
+				// toast.success('Витрату видалено.');
+				await update({ reset: false });
+				deleteTarget = null;
+			} else {
+				console.error('Deletion failed:', result.status);
+				deleteTarget = null;
+				// toast.error('Помилка при видаленні.');
+			}
+		};
+	};
+
+	function confirmDelete() {
+		if (deleteTarget !== null) {
+			deleteForm.requestSubmit();
+		}
+	}
 </script>
+
+<ModalConfirm
+	open={deleteTarget !== null}
+	title="Remove exercise"
+	message="Are you sure you want to delete this exercise?"
+	onConfirm={confirmDelete}
+	onCancel={() => (deleteTarget = null)}
+/>
+
+<form
+	method="post"
+	action="?/deleteExercise"
+	use:enhance={handleEnhance}
+	bind:this={deleteForm}
+	class="hidden"
+>
+	<input type="hidden" name="id" value={deleteTarget ?? ''} />
+</form>
 
 <div class="container">
 	<!-- Search Panel -->
@@ -59,10 +105,15 @@
 			required
 		></textarea>
 
+		<label>
+			Time (seconds):
+			<input type="number" name="time" bind:value={formTime} min="10" required />
+		</label>
+
 		<div class="form-actions">
-			<button type="submit" class="btn-primary"
-				>{editingId ? 'Save Changes' : 'Submit Exercise'}</button
-			>
+			<button type="submit" class="btn-primary">
+				{editingId ? 'Save Changes' : 'Submit Exercise'}
+			</button>
 			{#if editingId}
 				<button type="button" onclick={cancelEdit} class="btn-secondary">Cancel</button>
 			{/if}
@@ -74,6 +125,7 @@
 		<thead>
 			<tr>
 				<th>Type</th>
+				<th>Time</th>
 				<th>Content</th>
 				<th>Author</th>
 				<th>Stats (P/S/L/D)</th>
@@ -84,16 +136,18 @@
 			{#each filtered as item (item.id)}
 				<tr>
 					<td><span class="badge {item.type}">{item.type}</span></td>
+					<td>{item.time}s</td>
 					<td class="content-cell">{item.content}</td>
 					<td>{item.author?.name ?? 'System'}</td>
 					<td>{item.timesPlayed} / {item.avgScore.toFixed(1)} / {item.likes} / {item.dislikes}</td>
 					<td>
 						<div class="actions">
 							<button class="btn-sm" onclick={() => startEdit(item)}>Edit</button>
-							<form method="post" action="?/deleteExercise" use:enhance>
-								<input type="hidden" name="id" value={item.id} />
-								<button type="submit" class="btn-sm btn-danger">Delete</button>
-							</form>
+							<button
+								type="submit"
+								class="btn-sm btn-danger"
+								onclick={() => (deleteTarget = item.id)}>Delete</button
+							>
 						</div>
 					</td>
 				</tr>

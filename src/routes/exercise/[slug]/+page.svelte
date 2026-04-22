@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
@@ -39,7 +40,7 @@
 			.map((c: string) => ({ char: c, status: 'untyped' as const }));
 		currentIndex = 0;
 		mistakes = [];
-		timeLeft = totalTime;
+		timeLeft = data.exercise.time;
 		totalTyped = 0;
 		isStarted = false;
 		isPaused = false;
@@ -151,6 +152,7 @@
 	<input type="hidden" name="accuracy" value={accuracy} />
 	<input type="hidden" name="exerciseId" value={data.exercise.id} />
 	<input type="hidden" name="errors" value={JSON.stringify(mistakes)} />
+	<input type="hidden" name="charCount" value={totalTyped} />
 </form>
 
 <div class="container">
@@ -192,7 +194,7 @@
 	<div class="controls">
 		{#if isFinished}
 			<button onclick={resetState}>Restart</button>
-			<button onclick={() => invalidateAll()}>Next Exercise</button>
+			<button onclick={() => goto(resolve('/exercise'))}>Next Exercise</button>
 		{/if}
 	</div>
 </div>

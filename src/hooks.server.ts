@@ -7,16 +7,20 @@ import { eq } from 'drizzle-orm';
 import { user } from '$lib/server/db/schema';
 
 const handleBetterAuth: Handle = async ({ event, resolve }) => {
-	const session = await auth.api.getSession({ headers: event.request.headers });
+	try {
+		const session = await auth.api.getSession({ headers: event.request.headers });
 
-	if (session) {
-		event.locals.session = session.session;
+		if (session) {
+			event.locals.session = session.session;
 
-		const fullUser = await db.query.user.findFirst({
-			where: eq(user.id, session.user.id),
-		});
+			const fullUser = await db.query.user.findFirst({
+				where: eq(user.id, session.user.id),
+			});
 
-		event.locals.user = fullUser ?? session.user;
+			event.locals.user = fullUser ?? session.user;
+		}
+	} catch (e) {
+		console.error('Auth hook error (database likely down):', e);
 	}
 
 	return svelteKitHandler({ event, resolve, auth, building });

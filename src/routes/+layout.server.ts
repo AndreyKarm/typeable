@@ -4,12 +4,12 @@ import type { LayoutServerLoad } from './$types';
 // import { auth } from '$lib/server/auth';
 
 export const load: LayoutServerLoad = async (event) => {
-  if (event.url.pathname.startsWith('/login')) {
+  if (event.url.pathname.startsWith('/login') || event.url.pathname.startsWith('/register')) {
     return {};
   }
 
   if (!event.locals.session) {
-    return redirect(302, '/login');
+    return redirect(302, '/register');
   }
 
   return {

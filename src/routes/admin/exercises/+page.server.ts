@@ -17,9 +17,12 @@ export const actions: Actions = {
     if (!event.locals.user) return fail(401, { message: "Unauthorized" });
     const formData = await event.request.formData();
     const content = formData.get('content')?.toString();
-    if (!content || content.length < 12) return fail(400, { message: "Content too short" });
+    const time = Number(formData.get('time'));
 
-    await db.insert(exercise).values({ type: "user", content, authorId: event.locals.user.id });
+    if (!content || content.length < 12) return fail(400, { message: "Content too short" });
+    if (isNaN(time) || time < 10) return fail(400, { message: "Invalid time (min 10s)" });
+
+    await db.insert(exercise).values({ type: "system", content, time });
     return { success: true };
   },
 
@@ -47,8 +50,10 @@ export const actions: Actions = {
     const formData = await event.request.formData();
     const id = Number(formData.get('id'));
     const content = formData.get('content')?.toString();
+    const time = Number(formData.get('time'));
 
     if (!content || content.length < 12) return fail(400, { message: "Content too short" });
+    if (isNaN(time) || time < 10) return fail(400, { message: "Invalid time" });
 
     // Check if user is author OR admin
     const exerciseToUpdate = await db.query.exercise.findFirst({ where: eq(exercise.id, id) });
@@ -56,7 +61,7 @@ export const actions: Actions = {
       return fail(403, { message: "Forbidden" });
     }
 
-    await db.update(exercise).set({ content }).where(eq(exercise.id, id));
+    await db.update(exercise).set({ content, time }).where(eq(exercise.id, id));
     return { success: true };
   }
 }

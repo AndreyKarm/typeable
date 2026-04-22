@@ -23,11 +23,21 @@
 		<button>Login</button>
 		<button formaction="?/signUpEmail">Register</button>
 	</form>
-	<p style="color: red">{form?.message ?? ''}</p>
+	<p class="error">{form?.message ?? ''}</p>
 </div>
 
 <style>
 	form {
 		min-width: 20rem;
+	}
+
+	button {
+		align-self: center;
+		width: 20rem;
+	}
+
+	.error {
+		color: red;
+		align-self: center;
 	}
 </style>

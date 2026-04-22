@@ -9,6 +9,7 @@ export const exercise = pgTable('exercise', {
   id: serial('id').primaryKey(),
   type: exerciseTypeEnum('type').notNull(),
   content: text('content').notNull(), // The actual text/quotes
+  time: integer('time').default(30).notNull(),
 
   // Relationships
   authorId: text('author_id').references(() => user.id, { onDelete: 'set null' }),
@@ -46,7 +47,7 @@ export const userStats = pgTable('user_stats', {
 export const typingSession = pgTable('typing_session', {
   id: serial('id').primaryKey(),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  exerciseId: integer('exercise_id').references(() => exercise.id), // Link to exercise
+  exerciseId: integer('exercise_id').references(() => exercise.id, { onDelete: 'cascade' }), // Link to exercise
   wpm: integer('wpm').notNull(),
   accuracy: integer('accuracy').notNull(),
   errors: jsonb('errors'),

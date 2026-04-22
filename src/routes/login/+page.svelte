@@ -18,11 +18,21 @@
 		</label>
 		<button>Login</button>
 	</form>
-	<p style="color: red">{form?.message ?? ''}</p>
+	<p class="error">{form?.message ?? ''}</p>
 </div>
 
 <style>
-	.container {
-		width: 40rem;
+	form {
+		min-width: 20rem;
+	}
+
+	button {
+		align-self: center;
+		width: 20rem;
+	}
+
+	.error {
+		color: red;
+		align-self: center;
 	}
 </style>
