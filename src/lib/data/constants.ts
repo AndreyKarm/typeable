@@ -1,0 +1,1 @@
+export const EXERCISES_FOR_AI = 10;

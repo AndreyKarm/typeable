@@ -3,6 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 
 	import './layout.css';
+	import { Toaster } from 'svelte-5-french-toast';
 
 	let { data, children } = $props();
 </script>
@@ -12,6 +13,7 @@
 	<title>TypeAble</title>
 </svelte:head>
 
+<Toaster position="top-center" />
 <Header user={data.user} />
 <main class="page-wrapper">
 	{@render children()}

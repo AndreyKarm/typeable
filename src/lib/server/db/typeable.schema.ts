@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, jsonb, pgEnum, real } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, integer, timestamp, jsonb, pgEnum, real, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { user } from './auth.schema';
 
@@ -10,6 +10,11 @@ export const exercise = pgTable('exercise', {
   type: exerciseTypeEnum('type').notNull(),
   content: text('content').notNull(), // The actual text/quotes
   time: integer('time').default(30).notNull(),
+
+  // AI & Personalization specific fields
+  isPersonal: boolean('is_personal').default(false).notNull(),
+  targetUserId: text('target_user_id').references(() => user.id, { onDelete: 'cascade' }),
+  triggerErrors: jsonb('trigger_errors'), // Stores the specific character errors that triggered AI generation
 
   // Relationships
   authorId: text('author_id').references(() => user.id, { onDelete: 'set null' }),
@@ -70,6 +75,7 @@ export const match = pgTable('match', {
 // Relations
 export const exerciseRelations = relations(exercise, ({ one, many }) => ({
   author: one(user, { fields: [exercise.authorId], references: [user.id] }),
+  targetUser: one(user, { fields: [exercise.targetUserId], references: [user.id] }),
   ratings: many(exerciseRating),
   sessions: many(typingSession)
 }));

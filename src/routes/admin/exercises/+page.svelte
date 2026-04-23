@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import ModalConfirm from '$lib/components/ModalConfirm.svelte';
+	import toast from 'svelte-5-french-toast';
 	import type { ActionData, PageData, SubmitFunction } from './$types';
 	import Icon from '@iconify/svelte';
 
@@ -42,13 +43,13 @@
 	const handleEnhance: SubmitFunction = () => {
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				// toast.success('Витрату видалено.');
+				toast.success('Successfuly deleted exercise.');
 				await update({ reset: false });
 				deleteTarget = null;
 			} else {
 				console.error('Deletion failed:', result.status);
 				deleteTarget = null;
-				// toast.error('Помилка при видаленні.');
+				toast.error('Error while deleting.');
 			}
 		};
 	};

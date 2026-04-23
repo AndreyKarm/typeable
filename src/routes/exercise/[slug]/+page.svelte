@@ -6,8 +6,6 @@
 
 	let { data } = $props();
 
-	const totalTime = 30;
-
 	type CharObj = { char: string; status: 'untyped' | 'correct' | 'incorrect' };
 	type Mistake = { char: string; typed: string; timestamp: Date };
 
@@ -16,7 +14,7 @@
 	let chars = $state<CharObj[]>([]);
 	let currentIndex = $state(0);
 	let mistakes = $state<Mistake[]>([]);
-	let timeLeft = $state(totalTime);
+	let timeLeft = $state(30);
 	let isStarted = $state(false);
 	let isPaused = $state(false);
 	let totalTyped = $state(0);
@@ -27,7 +25,7 @@
 			? Math.max(0, Math.round(((totalTyped - mistakes.length) / totalTyped) * 100))
 			: 100
 	);
-	let elapsedTime = $derived((totalTime - timeLeft) / 60);
+	let elapsedTime = $derived((data.exercise.time - timeLeft) / 60);
 	let wpm = $derived(
 		elapsedTime > 0 ? Math.round((totalTyped - mistakes.length) / 5 / elapsedTime) : 0
 	);
@@ -36,6 +34,7 @@
 	function resetState() {
 		clearInterval(timerInterval);
 		chars = data.exercise.content
+			.trim()
 			.split('')
 			.map((c: string) => ({ char: c, status: 'untyped' as const }));
 		currentIndex = 0;
@@ -46,6 +45,12 @@
 		isPaused = false;
 		hasSubmitted = false;
 	}
+
+	// $effect(() => {
+	// 	console.log(
+	// 		`Total typed: ${totalTyped}. Out of: ${chars.length}. ${chars.at(totalTyped)?.char}`
+	// 	);
+	// });
 
 	$effect(() => {
 		resetState();
@@ -102,6 +107,7 @@
 		startTimer();
 
 		if (key === 'Backspace') {
+			if (!isStarted) return;
 			if (currentIndex > 0) {
 				currentIndex--;
 				const prev = chars[currentIndex];
@@ -116,6 +122,7 @@
 			return;
 		}
 
+		startTimer();
 		totalTyped++;
 		const expectedChar = chars[currentIndex].char;
 
