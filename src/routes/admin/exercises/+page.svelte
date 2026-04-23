@@ -231,7 +231,6 @@
 	textarea {
 		width: 100%;
 		height: 10rem;
-		background: var(--bg-color);
 		color: white;
 		padding: 1rem;
 		border: none;

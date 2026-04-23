@@ -190,6 +190,7 @@ form {
 
 textarea {
 	min-height: 4rem;
+	background: var(--bg-color) !important;
 }
 
 input {
