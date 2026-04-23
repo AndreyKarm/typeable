@@ -1,14 +1,15 @@
 import { db } from '$lib/server/db';
 import {
   exercise,
+  exerciseRating,
   typingSession,
   userStats
 } from '$lib/server/db/typeable.schema';
 import { error, fail, type Actions } from '@sveltejs/kit';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
   const id = Number(params.slug);
   if (isNaN(id)) throw error(404, 'Invalid Exercise ID');
 
@@ -17,7 +18,19 @@ export const load: PageServerLoad = async ({ params }) => {
   });
 
   if (!ex) throw error(404, 'Exercise not found');
-  return { exercise: ex };
+
+  let userRating = 0;
+  if (locals.user) {
+    const existing = await db.query.exerciseRating.findFirst({
+      where: and(
+        eq(exerciseRating.userId, locals.user.id),
+        eq(exerciseRating.exerciseId, id)
+      )
+    });
+    userRating = existing?.isLiked ?? 0;
+  }
+
+  return { exercise: ex, userRating };
 };
 
 export const actions: Actions = {
@@ -71,6 +84,65 @@ export const actions: Actions = {
             avgWpm: sql`(${userStats.avgWpm} + ${wpm}) / 2`
           }
         });
+    });
+
+    return { success: true };
+  },
+
+  rate: async ({ request, locals }) => {
+    if (!locals.user) return fail(401, { message: 'Unauthorized' });
+
+    const formData = await request.formData();
+    const exerciseId = Number(formData.get('exerciseId'));
+    const newRating = Number(formData.get('rating')); // 1 or -1
+
+    if (isNaN(exerciseId) || (newRating !== 1 && newRating !== -1)) {
+      return fail(400, { message: 'Invalid input' });
+    }
+
+    await db.transaction(async (tx) => {
+      // 1. Get existing rating
+      const existing = await tx.query.exerciseRating.findFirst({
+        where: and(
+          eq(exerciseRating.userId, locals.user!.id),
+          eq(exerciseRating.exerciseId, exerciseId)
+        )
+      });
+
+      const oldRating = existing?.isLiked ?? 0;
+
+      // 2. Determine final rating (Toggle behavior: if clicking same, set to 0)
+      const finalRating = oldRating === newRating ? 0 : newRating;
+
+      // 3. Update Exercise Counts
+      // Logic: If transitioning from old, subtract old, add final
+      await tx
+        .update(exercise)
+        .set({
+          likes: sql`${exercise.likes} - ${oldRating === 1 ? 1 : 0} + ${finalRating === 1 ? 1 : 0}`,
+          dislikes: sql`${exercise.dislikes} - ${oldRating === -1 ? 1 : 0} + ${finalRating === -1 ? 1 : 0}`
+        })
+        .where(eq(exercise.id, exerciseId));
+
+      // 4. Update or Delete rating entry
+      if (finalRating === 0) {
+        if (existing) {
+          await tx.delete(exerciseRating).where(eq(exerciseRating.id, existing.id));
+        }
+      } else {
+        if (existing) {
+          await tx
+            .update(exerciseRating)
+            .set({ isLiked: finalRating })
+            .where(eq(exerciseRating.id, existing.id));
+        } else {
+          await tx.insert(exerciseRating).values({
+            userId: locals.user!.id,
+            exerciseId,
+            isLiked: finalRating
+          });
+        }
+      }
     });
 
     return { success: true };

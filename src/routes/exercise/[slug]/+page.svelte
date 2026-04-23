@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
+	import Icon from '@iconify/svelte';
 
 	let { data } = $props();
 
@@ -19,6 +20,7 @@
 	let isPaused = $state(false);
 	let totalTyped = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | undefined;
+	let userRating = $state(0);
 
 	let accuracy = $derived(
 		totalTyped > 0
@@ -44,6 +46,7 @@
 		isStarted = false;
 		isPaused = false;
 		hasSubmitted = false;
+		userRating = data.userRating;
 	}
 
 	// $effect(() => {
@@ -53,7 +56,9 @@
 	// });
 
 	$effect(() => {
-		resetState();
+		if (data.exercise.id) {
+			resetState();
+		}
 	});
 
 	$effect(() => {
@@ -136,6 +141,10 @@
 		currentIndex++;
 	}
 
+	function handleRateClick(rating: number) {
+		userRating = userRating === rating ? 0 : rating;
+	}
+
 	onMount(() => {
 		window.addEventListener('keydown', handleKeydown);
 		return () => {
@@ -163,6 +172,7 @@
 </form>
 
 <div class="container">
+	<!-- Top state -->
 	<div class="focus-prompt">
 		{#if isFinished}
 			TEST FINISHED
@@ -175,6 +185,7 @@
 		{/if}
 	</div>
 
+	<!-- Stats hud -->
 	<div class="hud">
 		<div>
 			{timeLeft}
@@ -190,6 +201,7 @@
 		</div>
 	</div>
 
+	<!-- Typing area -->
 	<div class="typing-area" class:paused={isPaused}>
 		{#each chars as charObj, i (i)}
 			<span class={charObj.status + (i === currentIndex ? ' active' : '')}>
@@ -198,12 +210,84 @@
 		{/each}
 	</div>
 
+	<!-- Summary -->
+	{#if isFinished}
+		<div class="results-summary">
+			<h3>Summary</h3>
+			{#if mistakes.length > 0}
+				<div class="mistakes-log">
+					<p>Mistakes made:</p>
+					<div class="mistakes-list">
+						{#each mistakes as m (m.timestamp)}
+							<span class="mistake-item">
+								<span class="char">{m.char}</span>
+								<span class="arrow">→</span>
+								<span class="typed">{m.typed === ' ' ? '␣' : m.typed}</span>
+							</span>
+						{/each}
+					</div>
+				</div>
+			{:else}
+				<p>Perfect score!</p>
+			{/if}
+		</div>
+	{/if}
+
+	<!-- Controls (Restart/Next Exercise) -->
 	<div class="controls">
 		{#if isFinished}
 			<button onclick={resetState}>Restart</button>
 			<button onclick={() => goto(resolve('/exercise'))}>Next Exercise</button>
 		{/if}
 	</div>
+
+	<!-- Rating exercise -->
+	{#if isFinished}
+		<div class="rating-controls">
+			<p>Rate this exercise:</p>
+			<div class="buttons">
+				<!-- Like Form -->
+				<form
+					action="?/rate"
+					method="POST"
+					use:enhance={({ formData }) => {
+						const rating = Number(formData.get('rating'));
+						handleRateClick(rating);
+
+						return async ({ update }) => {
+							await update({ reset: false, invalidateAll: false });
+						};
+					}}
+				>
+					<input type="hidden" name="exerciseId" value={data.exercise.id} />
+					<input type="hidden" name="rating" value="1" />
+					<button type="submit" class="btn-rate up" class:active={userRating === 1}>
+						<Icon icon="carbon:thumbs-up" width="24" />
+					</button>
+				</form>
+
+				<!-- Dislike Form -->
+				<form
+					action="?/rate"
+					method="POST"
+					use:enhance={({ formData }) => {
+						const rating = Number(formData.get('rating'));
+						handleRateClick(rating);
+
+						return async ({ update }) => {
+							await update({ reset: false, invalidateAll: false });
+						};
+					}}
+				>
+					<input type="hidden" name="exerciseId" value={data.exercise.id} />
+					<input type="hidden" name="rating" value="-1" />
+					<button type="submit" class="btn-rate down" class:active={userRating === -1}>
+						<Icon icon="carbon:thumbs-down" width="24" />
+					</button>
+				</form>
+			</div>
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -261,12 +345,12 @@
 		text-decoration: underline;
 	}
 
-	.active {
+	span.active {
 		color: var(--accent);
 		position: relative;
 	}
 
-	.active::before {
+	span.active::before {
 		content: '';
 		position: absolute;
 		left: -1px;
@@ -309,5 +393,82 @@
 		font-family: sans-serif;
 		font-size: 0.8rem;
 		letter-spacing: 1px;
+	}
+
+	.results-summary {
+		margin-top: 3rem;
+		text-align: center;
+		color: var(--text-main);
+		font-family: sans-serif;
+	}
+
+	.mistakes-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		justify-content: center;
+		margin-top: 1rem;
+		max-width: 600px;
+	}
+
+	.mistake-item {
+		background-color: var(--card-bg);
+		padding: 0.2rem 0.5rem;
+		border-radius: 4px;
+		display: flex;
+		gap: 0.5rem;
+		font-size: 0.9rem;
+	}
+
+	.mistake-item .char {
+		color: var(--success);
+	}
+
+	.mistake-item .typed {
+		color: var(--danger);
+	}
+
+	.rating-controls {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		margin-top: 2rem;
+		color: var(--text-main);
+		font-family: sans-serif;
+	}
+
+	.rating-controls .buttons {
+		display: flex;
+		gap: 1rem;
+		justify-content: center;
+		margin-top: 0.5rem;
+	}
+
+	.btn-rate {
+		background: var(--card-bg);
+		border: none;
+		padding: 0.5rem 1rem;
+		border-radius: 4px;
+		cursor: pointer;
+		color: var(--text-main);
+		transition: background 0.2s;
+	}
+
+	.btn-rate.up:hover {
+		background: var(--success);
+	}
+
+	.btn-rate.down:hover {
+		background: var(--danger);
+	}
+
+	.btn-rate.up.active {
+		background: var(--success);
+		color: #fff;
+	}
+
+	.btn-rate.down.active {
+		background: var(--danger);
+		color: #fff;
 	}
 </style>

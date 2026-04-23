@@ -40,16 +40,32 @@
 		}
 	});
 
-	const handleEnhance: SubmitFunction = () => {
+	// Handler for Add/Edit Form
+	const saveEnhance: SubmitFunction = () => {
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				toast.success('Successfuly deleted exercise.');
-				await update({ reset: false });
+				toast.success(
+					editingId ? 'Exercise updated successfully.' : 'Exercise created successfully.'
+				);
+				await update();
+			} else if (result.type === 'failure') {
+				toast.error(form?.message || 'Failed to save exercise.');
+			} else {
+				toast.error('An unexpected error occurred.');
+			}
+		};
+	};
+
+	// Handler for Delete Form
+	const deleteEnhance: SubmitFunction = () => {
+		return async ({ result, update }) => {
+			if (result.type === 'success') {
+				toast.success('Successfully deleted exercise.');
+				await update();
 				deleteTarget = null;
 			} else {
-				console.error('Deletion failed:', result.status);
+				toast.error('Error while deleting exercise.');
 				deleteTarget = null;
-				toast.error('Error while deleting.');
 			}
 		};
 	};
@@ -72,7 +88,7 @@
 <form
 	method="post"
 	action="?/deleteExercise"
-	use:enhance={handleEnhance}
+	use:enhance={deleteEnhance}
 	bind:this={deleteForm}
 	class="hidden"
 >
@@ -90,13 +106,10 @@
 	<form
 		method="post"
 		action={editingId ? `?/updateExercise` : `?/submitExercise`}
-		use:enhance
+		use:enhance={saveEnhance}
 		class="form-panel"
 	>
 		<h3>{editingId ? 'Edit Exercise' : 'Add New Exercise'}</h3>
-		{#if form?.message}
-			<p class="error">{form.message}</p>
-		{/if}
 
 		<input type="hidden" name="id" value={editingId} />
 		<textarea
@@ -108,7 +121,7 @@
 
 		<label>
 			Time (seconds):
-			<input type="number" name="time" bind:value={formTime} min="10" required />
+			<input type="number" name="time" bind:value={formTime} min="10" max="300" required />
 		</label>
 
 		<div class="form-actions">
@@ -129,7 +142,7 @@
 				<th>Time</th>
 				<th>Content</th>
 				<th>Author</th>
-				<th>Stats (P/S/L/D)</th>
+				<th title="Plays, Avg Score, Likes, Dislikes">Stats (P/S/L/D)</th>
 				<th>Actions</th>
 			</tr>
 		</thead>
@@ -145,7 +158,7 @@
 						<div class="actions">
 							<button class="btn-sm" onclick={() => startEdit(item)}>Edit</button>
 							<button
-								type="submit"
+								type="button"
 								class="btn-sm btn-danger"
 								onclick={() => (deleteTarget = item.id)}>Delete</button
 							>
@@ -217,7 +230,7 @@
 
 	textarea {
 		width: 100%;
-		height: 80px;
+		height: 10rem;
 		background: var(--bg-color);
 		color: white;
 		padding: 1rem;
