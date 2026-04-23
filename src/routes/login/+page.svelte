@@ -22,6 +22,12 @@
 </div>
 
 <style>
+	.container {
+		align-items: center;
+		justify-content: center;
+		height: 100%;
+	}
+
 	form {
 		min-width: 20rem;
 	}

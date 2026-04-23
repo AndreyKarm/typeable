@@ -10,6 +10,9 @@ export const auth = betterAuth({
 	secret: env.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, { provider: 'pg' }),
 	user: {
+		deleteUser: {
+			enabled: true
+		},
 		additionalFields: {
 			role: {
 				type: "string",
@@ -17,6 +20,9 @@ export const auth = betterAuth({
 				defaultValue: "user",
 			},
 		},
+	},
+	advanced: {
+		useSecureCookies: process.env.NODE_ENV === 'production',
 	},
 	emailAndPassword: { enabled: true },
 	plugins: [

@@ -115,8 +115,12 @@ button:hover,
 }
 
 button:active,
-.button:hover {
+.button:active {
 	transform: translateY(0);
+}
+
+.button.delete {
+	background-color: var(--danger);
 }
 
 /* Modal */
