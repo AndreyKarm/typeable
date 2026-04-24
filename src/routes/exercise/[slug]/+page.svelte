@@ -2,7 +2,6 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { onMount } from 'svelte';
 	import Icon from '@iconify/svelte';
 
 	let { data } = $props();
@@ -15,6 +14,7 @@
 	let chars = $state<CharObj[]>([]);
 	let currentIndex = $state(0);
 	let mistakes = $state<Mistake[]>([]);
+	let startTime: number | null = null;
 	let timeLeft = $state(30);
 	let isStarted = $state(false);
 	let isPaused = $state(false);
@@ -27,9 +27,10 @@
 			? Math.max(0, Math.round(((totalTyped - mistakes.length) / totalTyped) * 100))
 			: 100
 	);
-	let elapsedTime = $derived((data.exercise.time - timeLeft) / 60);
 	let wpm = $derived(
-		elapsedTime > 0 ? Math.round((totalTyped - mistakes.length) / 5 / elapsedTime) : 0
+		startTime
+			? Math.round((totalTyped - mistakes.length) / 5 / ((Date.now() - startTime) / 60000))
+			: 0
 	);
 	let isFinished = $derived(timeLeft === 0 || currentIndex >= chars.length);
 
@@ -75,6 +76,7 @@
 	function startTimer() {
 		if (isStarted || isPaused) return;
 		isStarted = true;
+		startTime = Date.now();
 		timerInterval = setInterval(() => {
 			if (timeLeft > 0) {
 				timeLeft--;
@@ -144,15 +146,9 @@
 	function handleRateClick(rating: number) {
 		userRating = userRating === rating ? 0 : rating;
 	}
-
-	onMount(() => {
-		window.addEventListener('keydown', handleKeydown);
-		return () => {
-			window.removeEventListener('keydown', handleKeydown);
-			clearInterval(timerInterval);
-		};
-	});
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <form
 	bind:this={formElement}
@@ -347,33 +343,12 @@
 
 	span.active {
 		color: var(--accent);
-		position: relative;
-	}
-
-	span.active::before {
-		content: '';
-		position: absolute;
-		left: -1px;
-		top: 5%;
-		height: 90%;
-		width: 2px;
-		background-color: #f5e0dc;
-		animation: blink 1s infinite;
+		border-bottom: 2px solid var(--accent);
 	}
 
 	button {
 		background-color: transparent;
 		color: var(--text-main);
-	}
-
-	@keyframes blink {
-		0%,
-		100% {
-			opacity: 1;
-		}
-		50% {
-			opacity: 0;
-		}
 	}
 
 	.focus-prompt {

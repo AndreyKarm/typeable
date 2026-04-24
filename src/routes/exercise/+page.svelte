@@ -27,6 +27,11 @@
 				return a.time - b.time;
 			})
 	);
+
+	function createLobby(exerciseId: number) {
+		const roomId = Math.random().toString(36).substring(7);
+		goto(resolve(`/duel/${roomId}/${exerciseId}`));
+	}
 </script>
 
 <!-- The Create Modal -->
@@ -80,10 +85,26 @@
 				<h3>Exercise #{ex.id}</h3>
 				<p class="preview">{ex.content.slice(0, 80)}...</p>
 				<div class="stats">
-					<span>📏 {ex.content.length} chars</span>
-					<span>⏱️ {ex.time}s</span>
-					<span>👍 {ex.likes}</span>
-					<span>👎 {ex.dislikes}</span>
+					<div class="stats-data">
+						📏 <p>{ex.content.length} chars</p>
+					</div>
+					<div>
+						⏱️ <p>{ex.time}s</p>
+					</div>
+					<div>
+						👍 <p>{ex.likes}</p>
+					</div>
+					<div>
+						👎 <p>{ex.dislikes}</p>
+					</div>
+					<button
+						onclick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							createLobby(ex.id);
+						}}
+						class="button duel">Create Lobby</button
+					>
 				</div>
 			</a>
 		{/each}
@@ -126,10 +147,25 @@
 
 	.stats {
 		display: flex;
+		justify-content: space-between;
+		align-items: center;
 		gap: 1rem;
 		font-size: 0.8rem;
 		color: var(--text-muted);
 		margin-top: auto;
+	}
+
+	.stats-data {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.button.duel {
+		padding: 0.4rem;
+		background-color: var(--text-muted);
+		font-size: 14px;
+		height: fit-content;
 	}
 
 	input,

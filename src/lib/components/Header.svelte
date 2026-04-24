@@ -43,7 +43,7 @@
 		<div class="links">
 			<a href={resolve('/dashboard')}>Dashboard</a>
 			<a href={resolve('/exercise')}>Exercise</a>
-			<a href={resolve('/duel')}>PVP Duels</a>
+			<!-- <a href={resolve('/duel')}>PVP Duels</a> -->
 			<a href={resolve('/leaderboard')}>Leaderboard</a>
 		</div>
 

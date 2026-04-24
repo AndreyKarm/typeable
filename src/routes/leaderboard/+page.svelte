@@ -147,7 +147,6 @@
 	td {
 		padding: 1rem;
 		text-align: left;
-		border-bottom: 1px solid var(--card-bg);
 	}
 
 	.sort-icon {
