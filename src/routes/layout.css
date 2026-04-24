@@ -77,13 +77,19 @@ table {
 	width: 100%;
 	border-collapse: collapse;
 }
+
 th,
 td {
 	padding: 1rem;
 	text-align: left;
 }
+
 th {
 	color: var(--text-muted);
+}
+
+tbody tr:hover {
+	background-color: var(--bg-color);
 }
 
 /* Button */

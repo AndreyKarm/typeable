@@ -5,7 +5,7 @@ import { desc, eq } from 'drizzle-orm';
 
 export async function load() {
   // Query top 50 users by average WPM
-  const leaders = await db.select({
+  const leadersResult = await db.select({
     userId: user.id,
     name: user.name,
     avgWpm: userStats.avgWpm,
@@ -15,6 +15,11 @@ export async function load() {
     .innerJoin(user, eq(userStats.userId, user.id))
     .orderBy(desc(userStats.avgWpm))
     .limit(50);
+
+  const leaders = leadersResult.map((u, i) => ({
+    ...u,
+    rank: i + 1
+  }));
 
   return { leaders };
 }

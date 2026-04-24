@@ -40,6 +40,8 @@
 			const valA = a[sortColumn];
 			const valB = b[sortColumn];
 
+			if (valA === undefined || valB === undefined) return 0;
+
 			const modifier = sortDirection === 'asc' ? 1 : -1;
 
 			if (typeof valA === 'string' && typeof valB === 'string') {
@@ -88,12 +90,7 @@
 							{sortColumn === 'rank' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
 						</span>
 					</th>
-					<th onclick={() => toggleSort('name')}>
-						User
-						<span class="sort-icon">
-							{sortColumn === 'name' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
-						</span>
-					</th>
+					<th>User</th>
 					<th onclick={() => toggleSort('avgWpm')}>
 						Avg WPM
 						<span class="sort-icon">
@@ -109,9 +106,9 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each sortedLeaders as leader, i (leader.name)}
+				{#each sortedLeaders as leader (leader.userId)}
 					<tr onclick={() => openUserModal(leader.userId, leader.name)} style="cursor: pointer;">
-						<td>{i + 1}</td>
+						<td>{leader.rank}</td>
 						<td>{leader.name}</td>
 						<td class="accent">{leader.avgWpm}</td>
 						<td>{leader.totalTyped}</td>

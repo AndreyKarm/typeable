@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 </script>
 
-<div class="landing-container">
+<div class="container">
 	<!-- Hero Section -->
 	<section class="hero">
 		<h1>Master Your <span class="accent">Keyboard.</span></h1>
@@ -12,10 +11,8 @@
 			content.
 		</p>
 		<div class="cta-group">
-			<button class="btn primary" onclick={() => goto(resolve('/exercise'))}>
-				Start Practicing
-			</button>
-			<button class="btn secondary">View Leaderboard</button>
+			<a href={resolve('/exercise')} class="button primary"> Start Practicing </a>
+			<a href={resolve('/leaderboard')} class="button secondary">View Leaderboard</a>
 		</div>
 	</section>
 
@@ -47,23 +44,27 @@
 				<h3>Competitive PvP</h3>
 				<p>Challenge your friends in real-time typing races to see who is fastest.</p>
 			</div>
+
+			<div class="feature-card">
+				<div class="image-placeholder">
+					<span>🤖</span>
+				</div>
+				<h3>AI Enchanced</h3>
+				<p>Custom exercises made by AI personally for you.</p>
+			</div>
 		</div>
 	</section>
 </div>
 
 <style>
-	.landing-container {
-		max-width: 1000px;
-		margin: 0 auto;
-		padding: 2rem;
-		color: #cdd6f4;
-		font-family: sans-serif;
+	.container {
+		height: 100%;
+		gap: 6rem;
 	}
 
 	/* Hero */
 	.hero {
 		text-align: center;
-		padding: 6rem 0;
 	}
 
 	h1 {
@@ -89,19 +90,6 @@
 	}
 
 	/* Buttons */
-	.btn {
-		padding: 0.8rem 1.5rem;
-		border-radius: 8px;
-		font-weight: bold;
-		cursor: pointer;
-		border: none;
-		transition: transform 0.2s;
-	}
-
-	.btn:hover {
-		transform: translateY(-2px);
-	}
-
 	.primary {
 		background: #89b4fa;
 		color: #11111b;
@@ -112,9 +100,6 @@
 	}
 
 	/* Features */
-	.features {
-		padding: 4rem 0;
-	}
 	.features h2 {
 		text-align: center;
 		margin-bottom: 3rem;
