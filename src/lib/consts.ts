@@ -1,0 +1,1 @@
+export const EXERCISE_TIME_VALUE = 0.8

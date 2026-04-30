@@ -1,15 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
 import { env } from '$env/dynamic/private';
+import type { Mistake } from "./TMistake";
 
 if (!env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not set');
 
 const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
-
-export interface Mistake {
-  char: string;
-  typed: string;
-  timestamp: string | Date;
-}
 
 export async function generateCustomExercise(mistakes: Mistake[]) {
   // Convert error object to a readable string for the AI
@@ -30,7 +25,7 @@ export async function generateCustomExercise(mistakes: Mistake[]) {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash",
       contents: "Generate a new typing exercise based on these errors.",
       config: {
         systemInstruction: systemInstruction,
@@ -39,7 +34,7 @@ export async function generateCustomExercise(mistakes: Mistake[]) {
     });
 
     // Clean the output just in case
-    return response.text?.trim() || "The quick brown fox jumps over the lazy dog.";
+    return response.text?.trim().replace('—', ' - ').replace('*', '') || "The quick brown fox jumps over the lazy dog.";
   } catch (error) {
     console.error("AI Generation Error:", error);
     return "The quick brown fox jumps over the lazy dog."; // Fallback

@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import Icon from '@iconify/svelte';
+	import toast from 'svelte-5-french-toast';
 
 	let { data } = $props();
 
@@ -50,12 +51,6 @@
 		userRating = data.userRating;
 	}
 
-	// $effect(() => {
-	// 	console.log(
-	// 		`Total typed: ${totalTyped}. Out of: ${chars.length}. ${chars.at(totalTyped)?.char}`
-	// 	);
-	// });
-
 	$effect(() => {
 		if (data.exercise.id) {
 			resetState();
@@ -68,8 +63,8 @@
 
 	$effect(() => {
 		if (isFinished && !hasSubmitted && formElement) {
-			hasSubmitted = true;
 			formElement.requestSubmit();
+			hasSubmitted = true;
 		}
 	});
 
@@ -114,22 +109,23 @@
 		startTimer();
 
 		if (key === 'Backspace') {
-			if (!isStarted) return;
 			if (currentIndex > 0) {
 				currentIndex--;
 				const prev = chars[currentIndex];
+
 				if (prev.status !== 'untyped') {
 					totalTyped = Math.max(0, totalTyped - 1);
-					if (prev.status === 'incorrect') {
-						mistakes = mistakes.slice(0, -1);
-					}
+					// if (prev.status === 'incorrect') {
+					// 	mistakes = mistakes.slice(0, -1);
+					// }
 					prev.status = 'untyped';
 				}
 			}
 			return;
 		}
 
-		startTimer();
+		if (currentIndex >= chars.length) return;
+
 		totalTyped++;
 		const expectedChar = chars[currentIndex].char;
 
@@ -155,7 +151,11 @@
 	method="post"
 	action="?/save"
 	use:enhance={() => {
-		return async ({ update }) => {
+		return async ({ result, update }) => {
+			if (result.type === 'success') {
+				const xp = result.data?.xpEarned;
+				toast.success(`Exercise complete! +${xp} XP`);
+			}
 			await update({ invalidateAll: false });
 		};
 	}}

@@ -44,6 +44,7 @@ export const userStats = pgTable('user_stats', {
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }).unique(),
   xp: integer('xp').default(0).notNull(),
   streak: integer('streak').default(0).notNull(),
+  lastPlayedAt: timestamp('last_played_at').defaultNow(),
   totalTyped: integer('total_typed').default(0).notNull(),
   avgWpm: integer('avg_wpm').default(0).notNull()
 });

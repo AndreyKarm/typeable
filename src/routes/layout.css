@@ -71,6 +71,17 @@ small {
 	background-color: var(--card-bg);
 }
 
+.hidden {
+	visibility: hidden;
+}
+
+.search {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	padding: 0.2rem 1rem;
+}
+
 /* Table */
 
 table {
@@ -88,8 +99,28 @@ th {
 	color: var(--text-muted);
 }
 
-tbody tr:hover {
+tbody tr {
 	background-color: var(--bg-color);
+	transition: background-color 0.2s ease;
+}
+
+tbody tr:nth-child(even) {
+	background-color: var(--card-bg);
+}
+
+tbody tr:hover {
+	background-color: color-mix(in srgb, var(--accent) 30%, black 70%) !important;
+	opacity: 0.8;
+}
+
+tbody tr td:first-child {
+	border-top-left-radius: 0.75rem;
+	border-bottom-left-radius: 0.75rem;
+}
+
+tbody tr td:last-child {
+	border-top-right-radius: 0.75rem;
+	border-bottom-right-radius: 0.75rem;
 }
 
 /* Button */
@@ -231,7 +262,7 @@ input,
 select,
 textarea {
 	padding: 0.75rem;
-	border-radius: 0.5rem;
+	border-radius: 1rem;
 	border: 1px solid var(--color-border);
 	background-color: var(--card-bg);
 	color: var(--color-text);
@@ -250,6 +281,28 @@ textarea:focus {
 textarea {
 	color: var(--color-text);
 	resize: vertical;
+}
+
+/* Misc */
+.badge {
+	font-size: 0.7rem;
+	padding: 0.2rem 0.6rem;
+	border-radius: 4px;
+	text-transform: uppercase;
+	font-weight: bold;
+	color: var(--bg-color);
+}
+
+.type-system {
+	background-color: var(--accent); /* Blue */
+}
+
+.type-user {
+	background-color: var(--success); /* Green */
+}
+
+.type-ai {
+	background-color: var(--warning); /* Yellow/Gold */
 }
 
 /* For Firefox: standard modern property */

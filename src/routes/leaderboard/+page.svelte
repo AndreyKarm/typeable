@@ -123,7 +123,7 @@
 	table {
 		width: 100%;
 		border-collapse: collapse;
-		margin-top: 1rem;
+		border-spacing: 0 0.5rem;
 	}
 
 	th {
@@ -144,6 +144,11 @@
 	td {
 		padding: 1rem;
 		text-align: left;
+	}
+
+	.panel {
+		border-radius: 0;
+		margin-top: 1rem;
 	}
 
 	.sort-icon {

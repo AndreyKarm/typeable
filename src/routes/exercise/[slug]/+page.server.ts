@@ -51,6 +51,11 @@ export const actions: Actions = {
       return fail(400, { message: 'Invalid stats' });
     }
 
+    const lengthModifier = Math.max(1, charCount / 10);
+    const xpEarned = Math.max(1, Math.round(wpm * (accuracy / 100) * lengthModifier));
+
+    console.log(`Char count: ${charCount}, length modifier: ${lengthModifier}, xpearned: ${xpEarned}`)
+
     await db.transaction(async (tx) => {
       // 1. Save Session
       await tx.insert(typingSession).values({
@@ -67,26 +72,35 @@ export const actions: Actions = {
         .set({ timesPlayed: sql`${exercise.timesPlayed} + 1` })
         .where(eq(exercise.id, exerciseId));
 
-      // 3. Update User Stats (Upsert)
+      // 3. Update User Stats (Single MERGED Upsert)
       await tx
         .insert(userStats)
         .values({
           userId: locals.user!.id,
           totalTyped: charCount,
-          avgWpm: wpm // Initial value if insert happens
+          avgWpm: wpm,
+          xp: xpEarned,
+          streak: 1, // Default if new record
+          lastPlayedAt: sql`CURRENT_TIMESTAMP` // Default if new record
         })
         .onConflictDoUpdate({
           target: userStats.userId,
           set: {
             totalTyped: sql`${userStats.totalTyped} + ${charCount}`,
-            // Simple moving average formula: (oldAvg * count + newWpm) / (count + 1)
-            // Or just a simple average for now:
-            avgWpm: sql`(${userStats.avgWpm} + ${wpm}) / 2`
+            avgWpm: sql`(${userStats.avgWpm} + ${wpm}) / 2`,
+            xp: sql`${userStats.xp} + ${xpEarned}`,
+            streak: sql`
+              CASE 
+                WHEN COALESCE(${userStats.lastPlayedAt}, '1970-01-01'::timestamp)::date = CURRENT_DATE THEN ${userStats.streak}
+                WHEN COALESCE(${userStats.lastPlayedAt}, '1970-01-01'::timestamp)::date = CURRENT_DATE - INTERVAL '1 day' THEN ${userStats.streak} + 1
+                ELSE 1 
+              END`,
+            lastPlayedAt: sql`CURRENT_TIMESTAMP`
           }
         });
     });
 
-    return { success: true };
+    return { success: true, xpEarned };
   },
 
   rate: async ({ request, locals }) => {

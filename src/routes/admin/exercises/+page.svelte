@@ -97,7 +97,7 @@
 
 <div class="container">
 	<!-- Search Panel -->
-	<div class="panel">
+	<div class="panel search">
 		<Icon icon="carbon:search" width="24" />
 		<input type="text" bind:value={search} placeholder="Search exercises..." />
 	</div>
@@ -149,7 +149,7 @@
 		<tbody>
 			{#each filtered as item (item.id)}
 				<tr>
-					<td><span class="badge {item.type}">{item.type}</span></td>
+					<td><span class="badge type-{item.type}">{item.type}</span></td>
 					<td>{item.time}s</td>
 					<td class="content-cell">{item.content}</td>
 					<td>{item.author?.name ?? 'System'}</td>
@@ -180,12 +180,9 @@
 	}
 
 	.panel {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		background: var(--card-bg);
-		padding: 1rem;
-		border-radius: 0.5rem;
+		width: 100%;
+		border-radius: 1rem;
+		background-color: var(--card-bg);
 	}
 
 	.exercise-table {

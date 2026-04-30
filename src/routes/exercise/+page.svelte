@@ -4,6 +4,7 @@
 	import { enhance } from '$app/forms';
 	import type { PageData } from './$types';
 	import Modal from '$lib/components/Modal.svelte';
+	import Icon from '@iconify/svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -68,7 +69,10 @@
 	<h1>Library</h1>
 
 	<div class="controls">
-		<input type="text" placeholder="Search exercises..." bind:value={searchQuery} />
+		<div class="panel search">
+			<Icon icon="carbon:search" width="24" />
+			<input type="text" bind:value={searchQuery} placeholder="Search exercises..." />
+		</div>
 
 		<select bind:value={sortBy}>
 			<option value="likes">Most Liked</option>
@@ -82,29 +86,34 @@
 	<div class="grid">
 		{#each filteredExercises as ex (ex.id)}
 			<a href={resolve(`/exercise/${ex.id}`)} class="card">
-				<h3>Exercise #{ex.id}</h3>
-				<p class="preview">{ex.content.slice(0, 80)}...</p>
-				<div class="stats">
-					<div class="stats-data">
-						📏 <p>{ex.content.length} chars</p>
+				<h3 class="preview">{ex.content}</h3>
+				<div>
+					<div class="meta">
+						<span class="badge id">#{ex.id}</span>
+						<span class="badge type-{ex.type}">{ex.type}</span>
 					</div>
-					<div>
-						⏱️ <p>{ex.time}s</p>
+					<div class="stats">
+						<div>
+							📏 <p>{ex.content.length} chars</p>
+						</div>
+						<div>
+							⏱️ <p>{ex.time}s</p>
+						</div>
+						<div>
+							👍 <p>{ex.likes}</p>
+						</div>
+						<div>
+							👎 <p>{ex.dislikes}</p>
+						</div>
+						<button
+							onclick={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								createLobby(ex.id);
+							}}
+							class="button duel">Create Lobby</button
+						>
 					</div>
-					<div>
-						👍 <p>{ex.likes}</p>
-					</div>
-					<div>
-						👎 <p>{ex.dislikes}</p>
-					</div>
-					<button
-						onclick={(e) => {
-							e.preventDefault();
-							e.stopPropagation();
-							createLobby(ex.id);
-						}}
-						class="button duel">Create Lobby</button
-					>
 				</div>
 			</a>
 		{/each}
@@ -130,6 +139,7 @@
 		border-radius: 1rem;
 		display: flex;
 		flex-direction: column;
+		justify-content: space-between;
 		gap: 1rem;
 		border: 1px solid transparent;
 		transition: border 0.2s;
@@ -141,8 +151,33 @@
 	}
 
 	.preview {
+		color: var(--text-main);
+		font-size: 0.95rem;
+		font-weight: 400;
+		line-height: 1.5;
+		margin: 0;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.meta {
+		display: flex;
+		width: 100%;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	.badge.id {
+		background: var(--surface);
 		color: var(--text-muted);
-		font-size: 0.9rem;
+	}
+
+	.badge.type {
+		background: var(--accent);
+		color: var(--bg-main);
 	}
 
 	.stats {
@@ -155,7 +190,7 @@
 		margin-top: auto;
 	}
 
-	.stats-data {
+	.stats div {
 		display: flex;
 		flex-direction: column;
 		align-items: center;

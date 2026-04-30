@@ -3,17 +3,21 @@ import type { LayoutServerLoad } from './$types';
 // import type { Actions } from './$types';
 // import { auth } from '$lib/server/auth';
 
-export const load: LayoutServerLoad = async (event) => {
-  if (event.url.pathname.startsWith('/login') || event.url.pathname.startsWith('/register')) {
+export const load: LayoutServerLoad = async ({ locals, url }) => {
+  if (url.pathname.startsWith('/login') || url.pathname.startsWith('/register')) {
     return {};
   }
 
-  if (!event.locals.session) {
+  if (!locals.session) {
     return redirect(302, '/register');
   }
 
+  if (!locals.user || locals.user.banned) {
+    throw redirect(303, '/banned');
+  }
+
   return {
-    user: event.locals.user
+    user: locals.user
   };
 };
 

@@ -47,7 +47,7 @@
 			<a href={resolve('/leaderboard')}>Leaderboard</a>
 		</div>
 
-		<div class="user-menu-container" bind:this={menuContainer}>
+		<div class="user-menu-container" class:hidden={!user} bind:this={menuContainer}>
 			<button
 				class="user-profile"
 				onclick={() => (user ? (isOpen = !isOpen) : null)}
@@ -95,6 +95,15 @@
 		justify-content: space-between;
 		align-items: center;
 		width: 90%;
+	}
+
+	.logo a img {
+		transition: all 0.2s ease-in-out;
+		display: block;
+	}
+
+	.logo a:hover img {
+		transform: scale(1.1);
 	}
 
 	.links {

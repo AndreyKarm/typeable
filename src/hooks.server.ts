@@ -1,4 +1,4 @@
-import type { Handle } from '@sveltejs/kit';
+import { redirect, type Handle } from '@sveltejs/kit';
 import { building } from '$app/environment';
 import { auth } from '$lib/server/auth';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
@@ -16,6 +16,15 @@ const handleBetterAuth: Handle = async ({ event, resolve }) => {
 			const fullUser = await db.query.user.findFirst({
 				where: eq(user.id, session.user.id),
 			});
+
+			if (fullUser?.banned) {
+				await auth.api.signOut({ headers: event.request.headers });
+
+				event.locals.session = null;
+				event.locals.user = null;
+
+				throw redirect(303, '/banned');
+			}
 
 			event.locals.user = fullUser ?? session.user;
 		}

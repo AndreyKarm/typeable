@@ -1,42 +1,76 @@
-# sv
+# Typeable
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+An AI-powered typing practice platform built with Svelte 5, Drizzle ORM, and Better Auth.
 
-## Creating a project
+## Tech Stack
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Framework: SvelteKit (Svelte 5)
+- Language: TypeScript
+- Database: PostgreSQL (managed via Drizzle ORM)
+- Authentication: Better Auth
+- AI Integration: Google Gemini SDK
+- AI Integration (Development): LM Studio
 
-```sh
-# create a new project
-npx sv create my-app
+## Getting Started
+
+## 1. Prerequisites
+
+- Node.js (v22+)
+- pnpm
+- Docker (to run the database)
+
+## 2. Installation
+
+Clone the repository and install dependencies:
+
+``` bash
+git clone https://github.com/AndreyKarm/typeable.git
+cd typeable
+pnpm install
 ```
 
-To recreate this project with the same configuration:
+## 3. Environment Variables
 
-```sh
-# recreate this project
-pnpm dlx sv@0.15.1 create --template minimal --types ts --add prettier eslint sveltekit-adapter="adapter:node" drizzle="database:postgresql+postgresql:postgres.js+docker:yes" better-auth="demo:password" --install pnpm ./
+Copy the example environment file and update the values as needed:
+
+``` bash
+cp .env.example .env
 ```
 
-## Developing
+## 4. Database Setup
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Start the PostgreSQL database container and run migrations:
 
-```sh
-npm run dev
+``` bash
+# Start the database container
+pnpm db:start
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+# Run migrations to set up tables
+pnpm db:migrate
 ```
 
-## Building
+## 5. Development
 
-To create a production version of your app:
+Start the development server:
 
-```sh
-npm run build
+``` bash
+pnpm dev
 ```
 
-You can preview the production build with `npm run preview`.
+## Available Scripts
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+| Script           | Description                             |
+| ---------------- | --------------------------------------- |
+| pnpm dev         |  Starts the development server          |
+| pnpm build       |  Builds the project for production      |
+| pnpm db:start    |  Starts the Docker database container   |
+| pnpm db:generate |  Generates Drizzle migrations           |
+| pnpm db:migrate  |  Runs migrations against the DB         |
+| pnpm db:studio   |  Opens Drizzle Studio to inspect the DB |
+| pnpm auth:schema |  Generates the Better Auth schema       |
+| pnpm lint        |  Runs Prettier and ESLint               |
+| pnpm format      |  Formats code with Prettier             |
+
+## Deployment
+
+This project uses @sveltejs/adapter-node. To deploy, build the project with pnpm build and ensure your production environment has the necessary environment variables set.
