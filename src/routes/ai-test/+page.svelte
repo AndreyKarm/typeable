@@ -1,8 +1,3 @@
-<script>
-	// This page will immediately redirect from server,
-	// but this serves as a buffer while the AI is thinking
-</script>
-
 <div class="container">
 	<div class="loader">
 		<h2>Generating your personalized test...</h2>
@@ -28,6 +23,7 @@
 		border-radius: 50%;
 		animation: spin 1s linear infinite;
 	}
+
 	@keyframes spin {
 		0% {
 			transform: rotate(0deg);

@@ -4,9 +4,6 @@ import type { Mistake } from "./TMistake";
 const client = new LMStudioClient();
 
 export async function generateCustomExercise(mistakes: Mistake[]) {
-
-  console.log("New request!")
-
   const aggregatedErrors = aggregateErrors(mistakes);
 
   try {

@@ -33,8 +33,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   const generator = prod ? GeminiGenerate : LMGenerate;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const allMistakes: Mistake[] = sessions.flatMap((s) => (s.errors as any[]) || []);
+  const allMistakes: Mistake[] = sessions.flatMap((s) => (s.errors as Mistake[]) || []);
   const newContent = await generator(allMistakes);
 
   const [newExercise] = await db.insert(exercise).values({

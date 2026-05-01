@@ -5,13 +5,21 @@
 	import type { PageData } from './$types';
 	import Modal from '$lib/components/Modal.svelte';
 	import Icon from '@iconify/svelte';
+	import UserModal from '$lib/components/UserModal.svelte';
+	import { copyToClipboard } from '$lib/utils';
 
 	let { data }: { data: PageData } = $props();
 
 	// State
 	let isCreateModalOpen = $state(false);
 	let searchQuery = $state('');
-	let sortBy = $state<'likes' | 'time'>('likes');
+	let sortBy = $state<
+		'most_played' | 'likes' | 'dislikes' | 'shortest_time' | 'longest_time' | 'oldest' | 'newest'
+	>('most_played');
+
+	let isUserModalOpen = $state(false);
+	let activeUserId = $state<string | null>(null);
+	let activeUserName = $state<string | null>(null);
 
 	// Navigation to random
 	function playRandom() {
@@ -24,8 +32,25 @@
 		data.exercises
 			.filter((e) => e.content.toLowerCase().includes(searchQuery.toLowerCase()))
 			.sort((a, b) => {
-				if (sortBy === 'likes') return b.likes - a.likes;
-				return a.time - b.time;
+				switch (sortBy) {
+					case 'most_played':
+						return (b.timesPlayed ?? 0) - (a.timesPlayed ?? 0);
+					case 'likes':
+						return b.likes - a.likes;
+					case 'dislikes':
+						return a.dislikes - b.dislikes;
+					case 'shortest_time':
+						return a.time - b.time;
+					case 'longest_time':
+						return b.time - a.time;
+					case 'oldest':
+						return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+					case 'newest':
+						return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
+					default:
+						return a.time - b.time;
+				}
 			})
 	);
 
@@ -33,9 +58,21 @@
 		const roomId = Math.random().toString(36).substring(7);
 		goto(resolve(`/duel/${roomId}/${exerciseId}`));
 	}
+
+	function openUserModal(userId: string, name: string | null) {
+		activeUserId = userId;
+		activeUserName = name;
+		isUserModalOpen = true;
+	}
 </script>
 
-<!-- The Create Modal -->
+<UserModal
+	open={isUserModalOpen}
+	onClose={() => (isUserModalOpen = false)}
+	userId={activeUserId}
+	userName={activeUserName}
+/>
+
 <Modal
 	open={isCreateModalOpen}
 	onClose={() => (isCreateModalOpen = false)}
@@ -74,36 +111,61 @@
 			<input type="text" bind:value={searchQuery} placeholder="Search exercises..." />
 		</div>
 
-		<select bind:value={sortBy}>
+		<select bind:value={sortBy} class="control-select">
+			<option value="most_played">Most Played</option>
 			<option value="likes">Most Liked</option>
-			<option value="time">Shortest Time</option>
+			<option value="dislikes">Most Disliked</option>
+			<option value="shortest_time">Shortest Time</option>
+			<option value="longest_time">Longest Time</option>
+			<option value="newest">Newest</option>
+			<option value="oldest">Oldest</option>
 		</select>
 
-		<button onclick={() => (isCreateModalOpen = true)}>+ New Exercise</button>
-		<button onclick={playRandom}>Random Exercise</button>
+		<button class="button" onclick={() => (isCreateModalOpen = true)}>New Exercise</button>
+		<button class="button" onclick={playRandom}>Random Exercise</button>
 	</div>
 
 	<div class="grid">
 		{#each filteredExercises as ex (ex.id)}
 			<a href={resolve(`/exercise/${ex.id}`)} class="card">
 				<h3 class="preview">{ex.content}</h3>
-				<div>
+				<div class="card-data">
 					<div class="meta">
-						<span class="badge id">#{ex.id}</span>
-						<span class="badge type-{ex.type}">{ex.type}</span>
+						<button
+							class="badge id"
+							onclick={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								copyToClipboard(ex.id);
+							}}>#{ex.id}</button
+						>
+						<button
+							class="badge type-{ex.type}"
+							style="cursor: pointer;"
+							onclick={(e) => {
+								if (ex.authorId) {
+									e.preventDefault();
+									e.stopPropagation();
+									openUserModal(ex.authorId, ex.author?.name ?? null);
+								}
+							}}>{ex.author?.name ?? ex.type}</button
+						>
 					</div>
 					<div class="stats">
-						<div>
+						<div title="Length of the Exercise">
 							📏 <p>{ex.content.length} chars</p>
 						</div>
-						<div>
+						<div title="Time to Complete in Seconds">
 							⏱️ <p>{ex.time}s</p>
 						</div>
-						<div>
+						<div title="Likes">
 							👍 <p>{ex.likes}</p>
 						</div>
-						<div>
+						<div title="Dislikes">
 							👎 <p>{ex.dislikes}</p>
+						</div>
+						<div title="Times Played">
+							🚶‍♂️ <p>{ex.timesPlayed}</p>
 						</div>
 						<button
 							onclick={(e) => {
@@ -124,7 +186,16 @@
 	.controls {
 		display: flex;
 		gap: 1rem;
-		margin: 2rem 0;
+		margin: 1rem 0;
+		align-items: center;
+	}
+
+	.control-select {
+		height: 100%;
+	}
+
+	.controls .button {
+		border-radius: 1rem;
 	}
 
 	.grid {
@@ -150,6 +221,12 @@
 		text-decoration: none;
 	}
 
+	.card-data {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
 	.preview {
 		color: var(--text-main);
 		font-size: 0.95rem;
@@ -171,7 +248,7 @@
 	}
 
 	.badge.id {
-		background: var(--surface);
+		background: var(--bg-color);
 		color: var(--text-muted);
 	}
 
@@ -196,11 +273,19 @@
 		align-items: center;
 	}
 
+	.stats div p {
+		text-align: center;
+	}
+
 	.button.duel {
 		padding: 0.4rem;
 		background-color: var(--text-muted);
 		font-size: 14px;
 		height: fit-content;
+	}
+
+	textarea {
+		margin: 0.5rem 0;
 	}
 
 	input,

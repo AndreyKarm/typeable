@@ -52,7 +52,7 @@
 					<td>{formatDate(session.createdAt)}</td>
 					<td>{session.wpm}</td>
 					<td>{session.accuracy}%</td>
-					<td class="preview">{session.exercise?.content.slice(0, 30)}...</td>
+					<td class="preview">{session.exercise?.content}</td>
 				</tr>
 			{:else}
 				<tr>
@@ -111,12 +111,21 @@
 	td {
 		padding: 1rem;
 		text-align: left;
-		border-bottom: 1px solid var(--bg-color);
 	}
+
 	.preview {
-		color: #6c7086;
-		font-size: 0.9rem;
+		color: var(--text-main);
+		font-size: 0.95rem;
+		font-weight: 300;
+		line-height: 1.5;
+		margin: 0;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
+
 	.empty {
 		text-align: center;
 		color: #585b70;

@@ -1,6 +1,11 @@
 # Typeable
 
-An AI-powered typing practice platform built with Svelte 5, Drizzle ORM, and Better Auth.
+An AI-powered typing practice platform built with Svelte 5, Drizzle ORM, and Better Auth. Includes a dedicated real-time service powered by Bun.
+
+## Project Structure
+
+- /: The main Typeable SvelteKit application.
+- /websockets/: A standalone real-time service powered by Bun.
 
 ## Tech Stack
 
@@ -16,6 +21,7 @@ An AI-powered typing practice platform built with Svelte 5, Drizzle ORM, and Bet
 ## 1. Prerequisites
 
 - Node.js (v22+)
+- Bun (for the websockets service)
 - pnpm
 - Docker (to run the database)
 
@@ -27,6 +33,9 @@ Clone the repository and install dependencies:
 git clone https://github.com/AndreyKarm/typeable.git
 cd typeable
 pnpm install
+
+cd websockets
+bun install
 ```
 
 ## 3. Environment Variables
@@ -51,13 +60,22 @@ pnpm db:migrate
 
 ## 5. Development
 
-Start the development server:
+Terminal 1 (SvelteKit Frontend):
 
 ``` bash
 pnpm dev
 ```
 
+Terminal 2 (Websocket Service):
+
+``` bash
+# In the /websockets directory
+bun run dev
+```
+
 ## Available Scripts
+
+## Main Application (Root)
 
 | Script           | Description                             |
 | ---------------- | --------------------------------------- |
@@ -71,6 +89,13 @@ pnpm dev
 | pnpm lint        |  Runs Prettier and ESLint               |
 | pnpm format      |  Formats code with Prettier             |
 
+## Websocket Service (/websockets)
+
+| Script           | Description                                        |
+| ---------------- | -------------------------------------------------- |
+| bun run dev      | Starts the Bun websocket server with hot reloading |
+
 ## Deployment
 
-This project uses @sveltejs/adapter-node. To deploy, build the project with pnpm build and ensure your production environment has the necessary environment variables set.
+- The main app is configured for Node.js deployment using @sveltejs/adapter-node.
+- The websocket service requires a production-ready Bun environment (or containerized Bun runtime) to execute src/index.ts.

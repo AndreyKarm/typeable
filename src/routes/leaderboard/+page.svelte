@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Modal from '$lib/components/Modal.svelte';
+	import UserModal from '$lib/components/UserModal.svelte';
 
 	interface Leader {
 		userId: string;
@@ -14,9 +14,9 @@
 	let sortColumn = $state<keyof Leader>('rank');
 	let sortDirection = $state<'asc' | 'desc'>('desc');
 
-	let isModalOpen = $state(false);
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let selectedUser = $state<{ name: string; stats: any } | null>(null);
+	let isUserModalOpen = $state(false);
+	let activeUserId = $state<string | null>(null);
+	let activeUserName = $state<string | null>(null);
 
 	function toggleSort(column: keyof Leader) {
 		if (sortColumn === column) {
@@ -27,12 +27,10 @@
 		}
 	}
 
-	async function openUserModal(userId: string, name: string) {
-		const response = await fetch(`/api/user/${userId}`);
-		const data = await response.json();
-
-		selectedUser = { name, stats: data };
-		isModalOpen = true;
+	function openUserModal(userId: string, name: string | null) {
+		activeUserId = userId;
+		activeUserName = name;
+		isUserModalOpen = true;
 	}
 
 	let sortedLeaders = $derived(
@@ -55,28 +53,12 @@
 	);
 </script>
 
-<Modal open={isModalOpen} onClose={() => (isModalOpen = false)} title={selectedUser?.name}>
-	{#if selectedUser}
-		<div class="stats-grid">
-			<div class="stat-card">
-				<span class="label">XP</span>
-				<span class="value">{selectedUser.stats.xp}</span>
-			</div>
-			<div class="stat-card">
-				<span class="label">Streak</span>
-				<span class="value">{selectedUser.stats.streak}🔥</span>
-			</div>
-			<div class="stat-card">
-				<span class="label">Avg WPM</span>
-				<span class="value accent">{selectedUser.stats.avgWpm}</span>
-			</div>
-			<div class="stat-card">
-				<span class="label">Total Typed</span>
-				<span class="value">{selectedUser.stats.totalTyped}</span>
-			</div>
-		</div>
-	{/if}
-</Modal>
+<UserModal
+	open={isUserModalOpen}
+	onClose={() => (isUserModalOpen = false)}
+	userId={activeUserId}
+	userName={activeUserName}
+/>
 
 <div class="container">
 	<h1>Leaderboard</h1>
@@ -107,7 +89,16 @@
 			</thead>
 			<tbody>
 				{#each sortedLeaders as leader (leader.userId)}
-					<tr onclick={() => openUserModal(leader.userId, leader.name)} style="cursor: pointer;">
+					<tr
+						onclick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							if (leader.userId) {
+								openUserModal(leader.userId, leader.name);
+							}
+						}}
+						style="cursor: pointer;"
+					>
 						<td>{leader.rank}</td>
 						<td>{leader.name}</td>
 						<td class="accent">{leader.avgWpm}</td>
@@ -161,34 +152,6 @@
 	.accent {
 		color: var(--accent);
 		font-weight: bold;
-	}
-
-	.stats-grid {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 1rem;
-	}
-
-	.stat-card {
-		background: var(--bg-color);
-		padding: 1rem;
-		border-radius: 0.5rem;
-		display: flex;
-		flex-direction: column;
-		border: 1px solid var(--card-bg);
-	}
-
-	.label {
-		font-size: 0.8rem;
-		color: var(--text-muted);
-		text-transform: uppercase;
-		letter-spacing: 0.05rem;
-	}
-
-	.value {
-		font-size: 1.5rem;
-		font-weight: bold;
-		color: var(--text-main);
 	}
 
 	.accent {

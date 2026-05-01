@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import toast from 'svelte-5-french-toast';
+	import { copyToClipboard } from '$lib/utils.js';
 
 	let { data } = $props();
 
@@ -154,11 +155,6 @@
 		ws.send(JSON.stringify({ type: 'ready' }));
 		gameState = 'waiting'; // Wait for everyone
 	}
-
-	function shareUrl() {
-		navigator.clipboard.writeText(window.location.href);
-		toast.success('Link copied to clipboard!');
-	}
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -187,7 +183,12 @@
 <div class="container">
 	{#if gameState === 'waiting'}
 		<h1>Waiting for opponent...</h1>
-		<button class="btn" onclick={shareUrl}>Copy Invite Link</button>
+		<button
+			class="btn"
+			onclick={() => {
+				copyToClipboard(window.location.href);
+			}}>Copy Invite Link</button
+		>
 	{/if}
 
 	{#if gameState === 'ready'}

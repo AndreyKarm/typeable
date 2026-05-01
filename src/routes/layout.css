@@ -32,7 +32,7 @@ body {
 h1,
 h2,
 h3 {
-	margin: 0;
+	margin: 0.5rem 0;
 	padding: 0;
 }
 
@@ -76,10 +76,11 @@ small {
 }
 
 .search {
+	height: 100%;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	padding: 0.2rem 1rem;
+	padding: 0 1rem;
 }
 
 /* Table */
@@ -184,8 +185,6 @@ button:active,
 	background: var(--card-bg);
 	border-radius: 1rem;
 	padding: 2rem;
-	width: 60%;
-	max-width: 80%;
 }
 
 .modal-content h2 {
@@ -281,6 +280,24 @@ textarea:focus {
 textarea {
 	color: var(--color-text);
 	resize: vertical;
+}
+
+select {
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+
+	background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23666' d='M8 10l-4-4h8l-4 4z'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+
+	background-position: right 0.5rem center;
+	background-size: 1rem;
+	padding-right: 2rem;
+}
+
+select:open {
+	outline: none;
+	background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23666' d='M8 6l4 4H4l4-4z'/%3E%3C/svg%3E");
 }
 
 /* Misc */

@@ -63,8 +63,20 @@
 
 	$effect(() => {
 		if (isFinished && !hasSubmitted && formElement) {
-			formElement.requestSubmit();
-			hasSubmitted = true;
+			const stats = getFinalStats();
+
+			const wpmInput = formElement.querySelector<HTMLInputElement>('input[name="wpm"]');
+			const accInput = formElement.querySelector<HTMLInputElement>('input[name="accuracy"]');
+			const charInput = formElement.querySelector<HTMLInputElement>('input[name="charCount"]');
+
+			if (wpmInput && accInput && charInput) {
+				wpmInput.value = stats.wpm.toString();
+				accInput.value = stats.accuracy.toString();
+				charInput.value = stats.charCount.toString();
+
+				formElement.requestSubmit();
+				hasSubmitted = true;
+			}
 		}
 	});
 
@@ -139,6 +151,16 @@
 		currentIndex++;
 	}
 
+	function getFinalStats() {
+		const elapsedMinutes = (Date.now() - (startTime ?? Date.now())) / 60000;
+		const finalWpm = Math.max(0, Math.round((totalTyped - mistakes.length) / 5 / elapsedMinutes));
+		return {
+			wpm: finalWpm,
+			accuracy: accuracy,
+			charCount: totalTyped
+		};
+	}
+
 	function handleRateClick(rating: number) {
 		userRating = userRating === rating ? 0 : rating;
 	}
@@ -160,11 +182,11 @@
 		};
 	}}
 >
-	<input type="hidden" name="wpm" value={wpm} />
-	<input type="hidden" name="accuracy" value={accuracy} />
+	<input type="hidden" name="wpm" id="input-wpm" />
+	<input type="hidden" name="accuracy" id="input-accuracy" />
 	<input type="hidden" name="exerciseId" value={data.exercise.id} />
 	<input type="hidden" name="errors" value={JSON.stringify(mistakes)} />
-	<input type="hidden" name="charCount" value={totalTyped} />
+	<input type="hidden" name="charCount" id="input-charCount" />
 </form>
 
 <div class="container">
