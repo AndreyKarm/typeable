@@ -12,7 +12,7 @@
 	let { data }: { data: { leaders: Leader[] } } = $props();
 
 	let sortColumn = $state<keyof Leader>('rank');
-	let sortDirection = $state<'asc' | 'desc'>('desc');
+	let sortDirection = $state<'asc' | 'desc'>('asc');
 
 	let isUserModalOpen = $state(false);
 	let activeUserId = $state<string | null>(null);
@@ -76,13 +76,13 @@
 					<th onclick={() => toggleSort('avgWpm')}>
 						Avg WPM
 						<span class="sort-icon">
-							{sortColumn === 'avgWpm' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
+							{sortColumn === 'avgWpm' ? (sortDirection === 'asc' ? '▼' : '▲') : ''}
 						</span>
 					</th>
 					<th onclick={() => toggleSort('totalTyped')}>
 						Total Typed
 						<span class="sort-icon">
-							{sortColumn === 'totalTyped' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
+							{sortColumn === 'totalTyped' ? (sortDirection === 'asc' ? '▼' : '▲') : ''}
 						</span>
 					</th>
 				</tr>

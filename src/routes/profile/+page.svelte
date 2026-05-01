@@ -74,8 +74,8 @@
 		margin-bottom: 0.5rem;
 	}
 	.subtitle {
-		color: #6c7086;
-		margin-bottom: 2rem;
+		font-size: 1.2rem;
+		margin-bottom: 1rem;
 	}
 
 	.stats-grid {
@@ -105,6 +105,7 @@
 		background: var(--card-bg);
 		border-radius: 0.5rem;
 		overflow: hidden;
+		table-layout: fixed;
 	}
 
 	th,
@@ -113,15 +114,19 @@
 		text-align: left;
 	}
 
+	th:nth-child(4) {
+		width: 40%;
+	}
+
 	.preview {
 		color: var(--text-main);
 		font-size: 0.95rem;
 		font-weight: 300;
 		line-height: 1.5;
 		margin: 0;
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
+
+		display: block;
+		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}

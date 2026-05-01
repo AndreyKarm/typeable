@@ -192,6 +192,18 @@
 
 	.control-select {
 		height: 100%;
+		border: 1px solid transparent;
+		transition: all 0.2s ease;
+	}
+
+	.control-select:focus-within {
+		border: 1px solid var(--accent);
+	}
+
+	.control-select option {
+		background-color: var(--card-bg);
+		color: var(--text-main);
+		padding: 10px;
 	}
 
 	.controls .button {

@@ -54,8 +54,6 @@ export const actions: Actions = {
     const lengthModifier = Math.max(1, charCount / 10);
     const xpEarned = Math.max(1, Math.round(wpm * (accuracy / 100) * lengthModifier));
 
-    console.log(`Char count: ${charCount}, length modifier: ${lengthModifier}, xpearned: ${xpEarned}`)
-
     await db.transaction(async (tx) => {
       // 1. Save Session
       await tx.insert(typingSession).values({

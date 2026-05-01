@@ -81,6 +81,12 @@ small {
 	flex-direction: row;
 	align-items: center;
 	padding: 0 1rem;
+	border: 1px solid transparent;
+	transition: all 0.2s ease;
+}
+
+.search:focus-within {
+	border: 1px solid var(--accent);
 }
 
 /* Table */
@@ -112,16 +118,6 @@ tbody tr:nth-child(even) {
 tbody tr:hover {
 	background-color: color-mix(in srgb, var(--accent) 30%, black 70%) !important;
 	opacity: 0.8;
-}
-
-tbody tr td:first-child {
-	border-top-left-radius: 0.75rem;
-	border-bottom-left-radius: 0.75rem;
-}
-
-tbody tr td:last-child {
-	border-top-right-radius: 0.75rem;
-	border-bottom-right-radius: 0.75rem;
 }
 
 /* Button */

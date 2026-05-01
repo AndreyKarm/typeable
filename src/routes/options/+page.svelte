@@ -3,6 +3,7 @@
 	import ModalConfirm from '$lib/components/ModalConfirm.svelte';
 	import toast from 'svelte-5-french-toast';
 	import type { SubmitFunction } from './$types';
+	import { copyToClipboard } from '$lib/utils.js';
 
 	let { data } = $props();
 
@@ -68,7 +69,14 @@
 		<div class="info-grid">
 			<div class="info-item">
 				<span class="label">User ID:</span>
-				<code class="value">{data.user.id}</code>
+				<button
+					class="value code"
+					onclick={() => {
+						copyToClipboard(data.user.id);
+					}}
+				>
+					{data.user.id}
+				</button>
 			</div>
 			<div class="info-item">
 				<span class="label">Email:</span>
@@ -184,7 +192,7 @@
 		color: white;
 	}
 
-	code {
+	.code {
 		background: var(--bg-color);
 		padding: 0.2rem 0.4rem;
 		border-radius: 0.2rem;
