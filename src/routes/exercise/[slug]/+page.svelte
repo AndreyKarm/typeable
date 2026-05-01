@@ -4,92 +4,65 @@
 	import { resolve } from '$app/paths';
 	import Icon from '@iconify/svelte';
 	import toast from 'svelte-5-french-toast';
+	import TypingEngine from '$lib/components/TypingEngine.svelte';
+	import type { TypingStats } from '$lib/components/TypingEngine.svelte';
 
 	let { data } = $props();
 
-	type CharObj = { char: string; status: 'untyped' | 'correct' | 'incorrect' };
-	type Mistake = { char: string; typed: string; timestamp: Date };
-
 	let formElement = $state<HTMLFormElement | undefined>(undefined);
 	let hasSubmitted = $state(false);
-	let chars = $state<CharObj[]>([]);
-	let currentIndex = $state(0);
-	let mistakes = $state<Mistake[]>([]);
-	let startTime: number | null = null;
-	let timeLeft = $state(30);
+
+	let timeLeft = $state(0);
 	let isStarted = $state(false);
 	let isPaused = $state(false);
-	let totalTyped = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | undefined;
 	let userRating = $state(0);
 
-	let accuracy = $derived(
-		totalTyped > 0
-			? Math.max(0, Math.round(((totalTyped - mistakes.length) / totalTyped) * 100))
-			: 100
-	);
-	let wpm = $derived(
-		startTime
-			? Math.round((totalTyped - mistakes.length) / 5 / ((Date.now() - startTime) / 60000))
-			: 0
-	);
-	let isFinished = $derived(timeLeft === 0 || currentIndex >= chars.length);
+	let lastStats = $state<TypingStats | null>(null);
+	let isFinished = $state(false);
 
 	function resetState() {
 		clearInterval(timerInterval);
-		chars = data.exercise.content
-			.trim()
-			.split('')
-			.map((c: string) => ({ char: c, status: 'untyped' as const }));
-		currentIndex = 0;
-		mistakes = [];
 		timeLeft = data.exercise.time;
-		totalTyped = 0;
 		isStarted = false;
 		isPaused = false;
 		hasSubmitted = false;
+		isFinished = false;
+		lastStats = null;
 		userRating = data.userRating;
 	}
 
 	$effect(() => {
-		if (data.exercise.id) {
-			resetState();
-		}
+		if (data.exercise.id) resetState();
 	});
 
 	$effect(() => {
 		if (isFinished) clearInterval(timerInterval);
 	});
 
+	// Auto-submit when finished
 	$effect(() => {
-		if (isFinished && !hasSubmitted && formElement) {
-			const stats = getFinalStats();
+		if (!isFinished || hasSubmitted || !formElement || !lastStats) return;
 
-			const wpmInput = formElement.querySelector<HTMLInputElement>('input[name="wpm"]');
-			const accInput = formElement.querySelector<HTMLInputElement>('input[name="accuracy"]');
-			const charInput = formElement.querySelector<HTMLInputElement>('input[name="charCount"]');
+		const wpmInput = formElement.querySelector<HTMLInputElement>('input[name="wpm"]');
+		const accInput = formElement.querySelector<HTMLInputElement>('input[name="accuracy"]');
+		const charInput = formElement.querySelector<HTMLInputElement>('input[name="charCount"]');
 
-			if (wpmInput && accInput && charInput) {
-				wpmInput.value = stats.wpm.toString();
-				accInput.value = stats.accuracy.toString();
-				charInput.value = stats.charCount.toString();
-
-				formElement.requestSubmit();
-				hasSubmitted = true;
-			}
+		if (wpmInput && accInput && charInput) {
+			wpmInput.value = String(lastStats.wpm);
+			accInput.value = String(lastStats.accuracy);
+			charInput.value = String(lastStats.charCount);
+			formElement.requestSubmit();
+			hasSubmitted = true;
 		}
 	});
 
 	function startTimer() {
 		if (isStarted || isPaused) return;
 		isStarted = true;
-		startTime = Date.now();
 		timerInterval = setInterval(() => {
-			if (timeLeft > 0) {
-				timeLeft--;
-			} else {
-				clearInterval(timerInterval);
-			}
+			if (timeLeft > 0) timeLeft--;
+			else clearInterval(timerInterval);
 		}, 1000);
 	}
 
@@ -107,62 +80,19 @@
 		}
 	}
 
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
-			togglePause();
-			return;
-		}
-
-		if (isFinished || isPaused) return;
-
-		const key = event.key;
-		if (key.length > 1 && key !== 'Backspace') return;
-
-		startTimer();
-
-		if (key === 'Backspace') {
-			if (currentIndex > 0) {
-				currentIndex--;
-				const prev = chars[currentIndex];
-
-				if (prev.status !== 'untyped') {
-					totalTyped = Math.max(0, totalTyped - 1);
-					// if (prev.status === 'incorrect') {
-					// 	mistakes = mistakes.slice(0, -1);
-					// }
-					prev.status = 'untyped';
-				}
-			}
-			return;
-		}
-
-		if (currentIndex >= chars.length) return;
-
-		totalTyped++;
-		const expectedChar = chars[currentIndex].char;
-
-		if (key === expectedChar) {
-			chars[currentIndex].status = 'correct';
-		} else {
-			chars[currentIndex].status = 'incorrect';
-			mistakes = [...mistakes, { char: expectedChar, typed: key, timestamp: new Date() }];
-		}
-
-		currentIndex++;
+	function handleFinish(stats: TypingStats) {
+		lastStats = stats;
+		isFinished = true;
+		clearInterval(timerInterval);
 	}
 
-	function getFinalStats() {
-		const elapsedMinutes = (Date.now() - (startTime ?? Date.now())) / 60000;
-		const finalWpm = Math.max(0, Math.round((totalTyped - mistakes.length) / 5 / elapsedMinutes));
-		return {
-			wpm: finalWpm,
-			accuracy: accuracy,
-			charCount: totalTyped
-		};
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape') togglePause();
 	}
 
 	function handleRateClick(rating: number) {
 		userRating = userRating === rating ? 0 : rating;
+		toast.success('Rating sent!');
 	}
 </script>
 
@@ -185,7 +115,7 @@
 	<input type="hidden" name="wpm" id="input-wpm" />
 	<input type="hidden" name="accuracy" id="input-accuracy" />
 	<input type="hidden" name="exerciseId" value={data.exercise.id} />
-	<input type="hidden" name="errors" value={JSON.stringify(mistakes)} />
+	<input type="hidden" name="errors" value={JSON.stringify(lastStats?.mistakes ?? [])} />
 	<input type="hidden" name="charCount" id="input-charCount" />
 </form>
 
@@ -205,38 +135,29 @@
 
 	<!-- Stats hud -->
 	<div class="hud">
-		<div>
-			{timeLeft}
-			<span>Time Left</span>
-		</div>
-		<div>
-			{wpm}
-			<span>WPM</span>
-		</div>
-		<div>
-			{accuracy}%
-			<span>Acc</span>
-		</div>
+		<div>{timeLeft}<span>Time Left</span></div>
+		<div>{lastStats?.wpm ?? 0}<span>WPM</span></div>
+		<div>{lastStats?.accuracy ?? 100}%<span>Acc</span></div>
 	</div>
 
 	<!-- Typing area -->
-	<div class="typing-area" class:paused={isPaused}>
-		{#each chars as charObj, i (i)}
-			<span class={charObj.status + (i === currentIndex ? ' active' : '')}>
-				{charObj.char}
-			</span>
-		{/each}
-	</div>
+	<TypingEngine
+		content={data.exercise.content}
+		disabled={isPaused}
+		onstart={startTimer}
+		onupdate={(s) => (lastStats = s)}
+		onfinish={handleFinish}
+	/>
 
 	<!-- Summary -->
 	{#if isFinished}
 		<div class="results-summary">
 			<h3>Summary</h3>
-			{#if mistakes.length > 0}
+			{#if (lastStats?.mistakes.length ?? 0) > 0}
 				<div class="mistakes-log">
 					<p>Mistakes made:</p>
 					<div class="mistakes-list">
-						{#each mistakes as m (m.timestamp)}
+						{#each lastStats?.mistakes ?? [] as m (m.timestamp)}
 							<span class="mistake-item">
 								<span class="char">{m.char}</span>
 								<span class="arrow">→</span>
@@ -280,7 +201,7 @@
 					<input type="hidden" name="exerciseId" value={data.exercise.id} />
 					<input type="hidden" name="rating" value="1" />
 					<button type="submit" class="btn-rate up" class:active={userRating === 1}>
-						<Icon icon="carbon:thumbs-up" width="24" />
+						<Icon icon="carbon:thumbs-up" width="24" style="color: #1e1e1e" />
 					</button>
 				</form>
 
@@ -300,7 +221,7 @@
 					<input type="hidden" name="exerciseId" value={data.exercise.id} />
 					<input type="hidden" name="rating" value="-1" />
 					<button type="submit" class="btn-rate down" class:active={userRating === -1}>
-						<Icon icon="carbon:thumbs-down" width="24" />
+						<Icon icon="carbon:thumbs-down" width="24" style="color: #1e1e1e" />
 					</button>
 				</form>
 			</div>
@@ -325,6 +246,7 @@
 		color: #89b4fa;
 		font-family: sans-serif;
 		font-weight: bold;
+		text-align: center;
 	}
 
 	.hud div span {
@@ -333,39 +255,6 @@
 		display: block;
 		text-align: center;
 		font-weight: normal;
-	}
-
-	.typing-area {
-		max-width: 900px;
-		width: 80%;
-		font-size: 1.8rem;
-		line-height: 1.6;
-		position: relative;
-		text-align: center;
-		transition: opacity 0.2s ease;
-	}
-
-	.typing-area.paused {
-		opacity: 0.2;
-		user-select: none;
-	}
-
-	.untyped {
-		color: #585b70;
-	}
-
-	.correct {
-		color: var(--text-main);
-	}
-
-	.incorrect {
-		color: #f38ba8;
-		text-decoration: underline;
-	}
-
-	span.active {
-		color: var(--accent);
-		border-bottom: 2px solid var(--accent);
 	}
 
 	button {
@@ -448,7 +337,7 @@
 		border-radius: 4px;
 		cursor: pointer;
 		color: var(--text-main);
-		transition: background 0.2s;
+		transition: all 0.2s ease;
 	}
 
 	.btn-rate.up:hover {

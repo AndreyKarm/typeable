@@ -70,17 +70,14 @@
 		color: var(--text-main);
 		font-family: sans-serif;
 	}
+
 	h1 {
 		margin-bottom: 0.5rem;
-	}
-	.subtitle {
-		font-size: 1.2rem;
-		margin-bottom: 1rem;
 	}
 
 	.stats-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		grid-template-columns: repeat(2, minmax(200px, 1fr));
 		gap: 1rem;
 		margin-bottom: 3rem;
 	}

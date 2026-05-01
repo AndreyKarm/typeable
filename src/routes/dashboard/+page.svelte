@@ -212,24 +212,6 @@
 		margin-top: 0;
 	}
 
-	table {
-		width: 100%;
-		border-collapse: collapse;
-		margin-top: 1rem;
-	}
-
-	th {
-		text-align: left;
-		color: var(--text-muted, #bac2de);
-		font-weight: 600;
-	}
-
-	th,
-	td {
-		padding: 1rem;
-		border-bottom: 1px solid var(--surface, #313244);
-	}
-
 	.accent {
 		color: var(--accent, #cba6f7);
 		font-weight: bold;

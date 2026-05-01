@@ -5,50 +5,22 @@
 	import { resolve } from '$app/paths';
 	import toast from 'svelte-5-french-toast';
 	import { copyToClipboard } from '$lib/utils.js';
+	import TypingEngine from '$lib/components/TypingEngine.svelte';
+	import type { TypingStats } from '$lib/components/TypingEngine.svelte';
 
 	let { data } = $props();
 
-	// WebSocket State
 	let ws: WebSocket;
 	let gameState = $state<'waiting' | 'ready' | 'countdown' | 'racing' | 'finished'>('waiting');
 	let countdown = $state(3);
-
-	// Typing Engine State
-	type CharObj = { char: string; status: 'untyped' | 'correct' | 'incorrect' };
-	type Mistake = { char: string; typed: string; timestamp: Date };
-
-	let chars = $state<CharObj[]>([]);
-	let currentIndex = $state(0);
-	let mistakes = $state<Mistake[]>([]);
-	let totalTyped = $state(0);
-	let startTime: number | null = null;
-	let finished = $state(false);
-
 	let isResultsModalOpen = $state(false);
 
-	let myProgress = $derived(chars.length > 0 ? (currentIndex / chars.length) * 100 : 0);
+	// Bound from TypingEngine
+	let wpm = $state(0);
+	let accuracy = $state(100);
+	let progress = $state(0);
+
 	let opponent = $state({ name: 'Opponent', wpm: 0, accuracy: 0, progress: 0, finished: false });
-
-	// Derived
-	let accuracy = $derived(
-		totalTyped > 0
-			? Math.max(0, Math.round(((totalTyped - mistakes.length) / totalTyped) * 100))
-			: 100
-	);
-	let wpm = $derived(
-		startTime
-			? Math.round((totalTyped - mistakes.length) / 5 / ((Date.now() - startTime) / 60000))
-			: 0
-	);
-
-	$effect(() => {
-		if (data.exercise.id) {
-			chars = data.exercise.content
-				.trim()
-				.split('')
-				.map((c: string) => ({ char: c, status: 'untyped' as const }));
-		}
-	});
 
 	$effect(() => {
 		if (gameState === 'finished' || opponent.finished) {
@@ -56,7 +28,6 @@
 		}
 	});
 
-	// Core Logic
 	onMount(() => {
 		ws = new WebSocket(`ws://localhost:3001?roomId=${data.roomId}&userId=${data.userId}`);
 
@@ -70,12 +41,10 @@
 			if (msg.type === 'start_countdown') {
 				gameState = 'countdown';
 				countdown = 3;
-
 				const timer = setInterval(() => {
-					countdown--;
-					if (countdown === 0) {
+					if (--countdown === 0) {
 						clearInterval(timer);
-						startRace();
+						gameState = 'racing';
 					}
 				}, 1000);
 			}
@@ -95,74 +64,46 @@
 				if (gameState === 'racing') toast.error('Opponent finished!');
 			}
 		};
-
-		if (currentIndex >= chars.length) {
-			finished = true;
-			gameState = 'finished';
-			ws.send(JSON.stringify({ type: 'finish', wpm, accuracy }));
-		}
 	});
 
-	function startRace() {
-		gameState = 'racing';
-		startTime = Date.now();
-	}
-
-	function handleKeydown(event: KeyboardEvent) {
-		if (gameState !== 'racing' || finished) return;
-
-		const key = event.key;
-		if (key.length > 1 && key !== 'Backspace') return;
-
-		if (key === 'Backspace') {
-			if (currentIndex > 0) {
-				currentIndex--;
-				chars[currentIndex].status = 'untyped';
-				if (totalTyped > 0) totalTyped--;
-			}
-			return;
-		}
-
-		totalTyped++;
-		const expectedChar = chars[currentIndex].char;
-		if (key === expectedChar) {
-			chars[currentIndex].status = 'correct';
-		} else {
-			chars[currentIndex].status = 'incorrect';
-			mistakes = [...mistakes, { char: expectedChar, typed: key, timestamp: new Date() }];
-		}
-
-		currentIndex++;
-
-		// Broadcast update
+	function handleUpdate(stats: TypingStats) {
+		wpm = stats.wpm;
+		accuracy = stats.accuracy;
+		progress = stats.progress;
 		ws.send(
 			JSON.stringify({
 				type: 'typing_update',
-				wpm,
-				accuracy,
-				progress: myProgress,
+				wpm: stats.wpm,
+				accuracy: stats.accuracy,
+				progress: stats.progress,
 				userName: data.userName
 			})
 		);
+	}
 
-		if (currentIndex >= chars.length) {
-			finished = true;
-			gameState = 'finished';
-		}
+	function handleFinish(stats: TypingStats) {
+		wpm = stats.wpm;
+		accuracy = stats.accuracy;
+		progress = stats.progress;
+		gameState = 'finished';
+		ws.send(
+			JSON.stringify({
+				type: 'finish',
+				wpm: stats.wpm,
+				accuracy: stats.accuracy
+			})
+		);
 	}
 
 	function readyUp() {
 		ws.send(JSON.stringify({ type: 'ready' }));
-		gameState = 'waiting'; // Wait for everyone
+		gameState = 'waiting';
 	}
 </script>
-
-<svelte:window onkeydown={handleKeydown} />
 
 <Modal open={isResultsModalOpen} title="Duel Results" onClose={() => goto(resolve('/exercise'))}>
 	<div class="results-content">
 		<h2>{wpm > opponent.wpm ? 'Victory!' : 'Defeat!'}</h2>
-
 		<div class="score-comparison">
 			<div class="score-box" class:winner={wpm > opponent.wpm}>
 				<p>You</p>
@@ -175,7 +116,6 @@
 				<span>{opponent.accuracy}% Accuracy</span>
 			</div>
 		</div>
-
 		<button class="btn" onclick={() => goto(resolve('/exercise'))}>Back to Library</button>
 	</div>
 </Modal>
@@ -183,12 +123,9 @@
 <div class="container">
 	{#if gameState === 'waiting'}
 		<h1>Waiting for opponent...</h1>
-		<button
-			class="btn"
-			onclick={() => {
-				copyToClipboard(window.location.href);
-			}}>Copy Invite Link</button
-		>
+		<button class="btn" onclick={() => copyToClipboard(window.location.href)}>
+			Copy Invite Link
+		</button>
 	{/if}
 
 	{#if gameState === 'ready'}
@@ -200,19 +137,15 @@
 		<h1 class="countdown">{countdown}</h1>
 	{/if}
 
-	<!-- UI -->
 	{#if gameState === 'racing'}
 		<div class="duel-hud">
-			<!-- User -->
 			<div class="player-stat">
 				<p>You</p>
-				<h3>{wpm} <span class="label">WPM</span></h3>
+				<h3>{Number.isFinite(wpm) ? wpm : 0} <span class="label">WPM</span></h3>
 				<div class="progress-container">
-					<div class="progress-bar" style="width: {myProgress}%"></div>
+					<div class="progress-bar" style="width: {progress}%"></div>
 				</div>
 			</div>
-
-			<!-- Opponent -->
 			<div class="player-stat">
 				<p>{opponent.name}</p>
 				<h3>{opponent.wpm} <span class="label">WPM</span></h3>
@@ -221,14 +154,13 @@
 				</div>
 			</div>
 		</div>
-	{/if}
 
-	{#if gameState === 'racing'}
-		<div class="typing-area">
-			{#each chars as charObj, i (i)}
-				<span class={charObj.status + (i === currentIndex ? ' active' : '')}>{charObj.char}</span>
-			{/each}
-		</div>
+		<TypingEngine
+			content={data.exercise.content}
+			disabled={gameState !== 'racing'}
+			onupdate={handleUpdate}
+			onfinish={handleFinish}
+		/>
 	{/if}
 </div>
 
@@ -261,31 +193,6 @@
 		font-size: 0.8rem;
 		color: var(--text-muted);
 		display: block;
-	}
-
-	.typing-area {
-		max-width: 900px;
-		width: 80%;
-		font-size: 1.8rem;
-		text-align: center;
-	}
-
-	.untyped {
-		color: #585b70;
-	}
-
-	.correct {
-		color: var(--text-main);
-	}
-
-	.incorrect {
-		color: var(--danger);
-		text-decoration: underline;
-	}
-
-	.active {
-		color: var(--accent);
-		border-bottom: 2px solid var(--accent);
 	}
 
 	.countdown {

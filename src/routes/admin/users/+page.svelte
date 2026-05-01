@@ -2,15 +2,22 @@
 	import toast from 'svelte-5-french-toast';
 	import type { PageData } from './$types';
 	import Icon from '@iconify/svelte';
+	import { invalidateAll } from '$app/navigation';
 
 	let { data }: { data: PageData } = $props();
+
+	let users = $state<typeof data.users>([]);
+
+	$effect(() => {
+		users = data.users.map((u) => ({ ...u }));
+	});
+
 	let search = $state('');
 	let loadingId = $state<string | null>(null);
-
 	let expandedIds = $state<Record<string, boolean>>({});
 
 	const filtered = $derived(
-		data.users.filter(
+		users.filter(
 			(u) =>
 				u.name.toLowerCase().includes(search.toLowerCase()) ||
 				u.email.toLowerCase().includes(search.toLowerCase())
@@ -25,13 +32,24 @@
 		});
 	};
 
-	async function updateRole(id: string, role: string, banned: boolean) {
-		loadingId = id;
+	async function updateRole(u: (typeof users)[number]) {
+		const original = data.users.find((orig) => orig.id === u.id);
+		if (!original) return;
+
+		const hasChanged =
+			u.role !== original?.role ||
+			u.banned !== original?.banned ||
+			(u.notes ?? '') !== (original?.notes ?? '');
+
+		if (!hasChanged) return;
+
+		loadingId = u.id;
 
 		const formData = new FormData();
-		formData.append('id', id);
-		formData.append('role', role);
-		formData.append('banned', banned.toString());
+		formData.append('id', u.id);
+		formData.append('role', u.role);
+		formData.append('banned', u.banned.toString());
+		formData.append('notes', u.notes ?? '');
 
 		try {
 			const response = await fetch('?/updateUser', {
@@ -41,11 +59,12 @@
 
 			if (response.ok) {
 				toast.success('User updated');
+				await invalidateAll();
 			} else {
 				toast.error('Update failed');
 			}
-		} catch (error) {
-			console.error(error);
+		} catch (e) {
+			console.error(e);
 			toast.error('An error occurred');
 		} finally {
 			loadingId = null;
@@ -72,6 +91,7 @@
 				<th>Joined</th>
 				<th>Role</th>
 				<th>Status</th>
+				<th>Ban Reason (Notes)</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -90,7 +110,7 @@
 					<td>
 						<select
 							bind:value={u.role}
-							onchange={() => updateRole(u.id, u.role, u.banned)}
+							onchange={() => updateRole(u)}
 							disabled={loadingId === u.id}
 						>
 							<option value="user">User</option>
@@ -100,13 +120,26 @@
 					</td>
 					<td>
 						<select
-							bind:value={u.banned}
-							onchange={() => updateRole(u.id, u.role, u.banned)}
+							value={u.banned ? 'true' : 'false'}
+							onchange={(e) => {
+								u.banned = e.currentTarget.value === 'true';
+								updateRole(u);
+							}}
 							disabled={loadingId === u.id}
 						>
-							<option value={false}>Active</option>
-							<option value={true}>Banned</option>
+							<option value="false">Active</option>
+							<option value="true">Banned</option>
 						</select>
+					</td>
+					<td>
+						<input
+							type="text"
+							class="notes"
+							bind:value={u.notes}
+							placeholder="Reason..."
+							onblur={() => updateRole(u)}
+							disabled={loadingId === u.id}
+						/>
 					</td>
 				</tr>
 			{/each}
@@ -135,7 +168,7 @@
 		pointer-events: none;
 	}
 
-	select {
+	.user-table select {
 		background: var(--bg-color);
 		color: var(--text-main);
 		border: 1px solid var(--text-muted);
@@ -144,7 +177,16 @@
 		cursor: pointer;
 	}
 
-	select:focus {
+	.user-table select:focus {
 		border-color: var(--accent);
+	}
+
+	.notes {
+		background: var(--bg-color);
+		color: var(--text-main);
+		border: 1px solid var(--text-muted);
+		padding: 0.4rem;
+		border-radius: 0.25rem;
+		width: 100%;
 	}
 </style>

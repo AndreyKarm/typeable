@@ -4,15 +4,16 @@ import type { LayoutServerLoad } from './$types';
 // import { auth } from '$lib/server/auth';
 
 export const load: LayoutServerLoad = async ({ locals, url }) => {
-  if (url.pathname.startsWith('/login') || url.pathname.startsWith('/register')) {
+  const publicRoutes = ['/login', '/register', '/banned', '/goodbye'];
+  if (publicRoutes.some((route) => url.pathname.startsWith(route))) {
     return {};
   }
 
-  if (!locals.session) {
-    return redirect(302, '/register');
+  if (!locals.user) {
+    throw redirect(302, '/login');
   }
 
-  if (!locals.user || locals.user.banned) {
+  if (locals.user.banned) {
     throw redirect(303, '/banned');
   }
 

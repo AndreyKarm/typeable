@@ -26,10 +26,6 @@
 	h1 {
 		margin-bottom: 0.5rem;
 	}
-	.subtitle {
-		color: var(--text-muted);
-		margin-bottom: 2rem;
-	}
 
 	.admin-grid {
 		display: grid;

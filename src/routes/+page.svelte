@@ -76,13 +76,6 @@
 		color: #89b4fa;
 	}
 
-	.subtitle {
-		font-size: 1.25rem;
-		color: #6c7086;
-		max-width: 600px;
-		margin: 0 auto 2rem;
-	}
-
 	.cta-group {
 		display: flex;
 		gap: 1rem;

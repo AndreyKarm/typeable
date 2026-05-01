@@ -21,8 +21,9 @@ export const actions: Actions = {
     const id = formData.get('id') as string;
     const role = formData.get('role') as "user" | "admin" | "moderator";
     const banned = formData.get('banned') === 'true';
+    const notes = formData.get('notes') as string;
 
-    await db.update(user).set({ role, banned }).where(eq(user.id, id));
+    await db.update(user).set({ role, banned, notes }).where(eq(user.id, id));
     return { success: true };
   }
 }

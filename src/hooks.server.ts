@@ -18,6 +18,12 @@ const handleBetterAuth: Handle = async ({ event, resolve }) => {
 			});
 
 			if (fullUser?.banned) {
+				event.cookies.set('ban_reason', fullUser.notes || 'No reason provided.', {
+					path: '/',
+					httpOnly: true,
+					maxAge: 60
+				});
+
 				await auth.api.signOut({ headers: event.request.headers });
 
 				event.locals.session = null;

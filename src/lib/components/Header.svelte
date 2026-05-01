@@ -58,6 +58,7 @@
 
 			{#if isOpen}
 				<div class="dropdown" transition:slide={{ duration: 300, easing: cubicOut }}>
+					<p>{user.name}</p>
 					<a href={resolve('/profile')}>Profile</a>
 					<a href={resolve('/options')}>Options</a>
 					{#if user?.role === 'admin'}
@@ -150,11 +151,18 @@
 		z-index: 1000;
 	}
 
-	.dropdown a {
+	.dropdown a,
+	.dropdown p {
 		padding: 0.5rem;
+		margin: 0;
 		text-decoration: none;
 		color: var(--text-main);
 		border-radius: 0.3rem;
+	}
+
+	.dropdown p {
+		font-size: 1.2rem;
+		font-weight: 600;
 	}
 
 	.dropdown a:hover {

@@ -11,6 +11,7 @@ export const user = pgTable("user", {
   image: text("image"),
   role: userRoleEnum("role").default("user").notNull(),
   banned: boolean("banned").default(false).notNull(),
+  notes: text('notes').default(""),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
