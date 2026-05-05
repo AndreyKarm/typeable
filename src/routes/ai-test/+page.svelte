@@ -1,3 +1,27 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import toast from 'svelte-5-french-toast';
+
+	const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+	onMount(async () => {
+		try {
+			const res = await fetch('/api/generate-exercise', { method: 'POST' });
+			const data = await res.json();
+
+			if (data.exerciseId) {
+				await sleep(100000);
+				goto(resolve(`/exercise/${data.exerciseId}`));
+			}
+		} catch (e) {
+			toast.error('Failed to generate exercise');
+			console.error('Failed to generate exercise', e);
+		}
+	});
+</script>
+
 <div class="container">
 	<div class="loader">
 		<h2>Generating your personalized test...</h2>

@@ -107,7 +107,7 @@
 
 	<div class="controls">
 		<div class="panel search">
-			<Icon icon="carbon:search" width="24" />
+			<Icon icon="carbon:search" width="24" class="search-icon" />
 			<input type="text" bind:value={searchQuery} placeholder="Search exercises..." />
 		</div>
 
@@ -121,8 +121,8 @@
 			<option value="oldest">Oldest</option>
 		</select>
 
-		<button class="button" onclick={() => (isCreateModalOpen = true)}>New Exercise</button>
-		<button class="button" onclick={playRandom}>Random Exercise</button>
+		<button class="button" onclick={() => (isCreateModalOpen = true)}>New</button>
+		<button class="button" onclick={playRandom}>Random</button>
 	</div>
 
 	<div class="grid">
@@ -208,6 +208,7 @@
 
 	.controls .button {
 		border-radius: 1rem;
+		padding: 0.75rem;
 	}
 
 	.grid {
@@ -298,6 +299,7 @@
 
 	textarea {
 		margin: 0.5rem 0;
+		background-color: var(--bg-color) !important;
 	}
 
 	input,

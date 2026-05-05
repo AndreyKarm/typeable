@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import logo from '$lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
@@ -65,7 +64,7 @@
 						<a href={resolve('/admin')} style="color: var(--accent);">Admin Panel</a>
 					{/if}
 					<hr />
-					<form method="post" action="?/signOut" use:enhance>
+					<form method="post" action="/?/signOut">
 						<button class="danger">Sign out</button>
 					</form>
 				</div>

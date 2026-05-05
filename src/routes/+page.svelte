@@ -54,6 +54,11 @@
 			</div>
 		</div>
 	</section>
+
+	<section class="auth-actions">
+		<a href={resolve('/login')} class="button secondary">Login</a>
+		<a href={resolve('/register')} class="button primary">Register</a>
+	</section>
 </div>
 
 <style>
@@ -122,5 +127,19 @@
 		align-items: center;
 		justify-content: center;
 		font-size: 1.5rem;
+	}
+
+	.auth-actions {
+		display: flex;
+		justify-content: center;
+		gap: 1rem;
+		padding-top: 2rem;
+		border-top: 1px solid #313244;
+	}
+
+	.auth-actions .button {
+		width: 12rem;
+		height: 6rem;
+		font-size: 1.4rem;
 	}
 </style>

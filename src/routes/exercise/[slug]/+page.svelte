@@ -20,6 +20,7 @@
 
 	let lastStats = $state<TypingStats | null>(null);
 	let isFinished = $state(false);
+	let typingEngineKey = $state(0);
 
 	function resetState() {
 		clearInterval(timerInterval);
@@ -30,6 +31,11 @@
 		isFinished = false;
 		lastStats = null;
 		userRating = data.userRating;
+	}
+
+	function restartExercise() {
+		resetState();
+		typingEngineKey++;
 	}
 
 	$effect(() => {
@@ -141,13 +147,15 @@
 	</div>
 
 	<!-- Typing area -->
-	<TypingEngine
-		content={data.exercise.content}
-		disabled={isPaused}
-		onstart={startTimer}
-		onupdate={(s) => (lastStats = s)}
-		onfinish={handleFinish}
-	/>
+	{#key `${data.exercise.id}-${typingEngineKey}`}
+		<TypingEngine
+			content={data.exercise.content}
+			disabled={isPaused}
+			onstart={startTimer}
+			onupdate={(s) => (lastStats = s)}
+			onfinish={handleFinish}
+		/>
+	{/key}
 
 	<!-- Summary -->
 	{#if isFinished}
@@ -175,8 +183,8 @@
 	<!-- Controls (Restart/Next Exercise) -->
 	<div class="controls">
 		{#if isFinished}
-			<button onclick={resetState}>Restart</button>
-			<button onclick={() => goto(resolve('/exercise'))}>Next Exercise</button>
+			<button type="button" onclick={restartExercise}>Restart</button>
+			<button type="button" onclick={() => goto(resolve('/exercise'))}>Next Exercise</button>
 		{/if}
 	</div>
 
@@ -201,7 +209,7 @@
 					<input type="hidden" name="exerciseId" value={data.exercise.id} />
 					<input type="hidden" name="rating" value="1" />
 					<button type="submit" class="btn-rate up" class:active={userRating === 1}>
-						<Icon icon="carbon:thumbs-up" width="24" style="color: #1e1e1e" />
+						<Icon icon="carbon:thumbs-up" width="24" class="rate-icon" />
 					</button>
 				</form>
 
@@ -221,7 +229,7 @@
 					<input type="hidden" name="exerciseId" value={data.exercise.id} />
 					<input type="hidden" name="rating" value="-1" />
 					<button type="submit" class="btn-rate down" class:active={userRating === -1}>
-						<Icon icon="carbon:thumbs-down" width="24" style="color: #1e1e1e" />
+						<Icon icon="carbon:thumbs-down" width="24" class="rate-icon" />
 					</button>
 				</form>
 			</div>
@@ -336,23 +344,24 @@
 		padding: 0.5rem 1rem;
 		border-radius: 4px;
 		cursor: pointer;
-		color: var(--text-main);
-		transition: all 0.2s ease;
+		color: #1e1e1e !important;
+		transition:
+			background-color 0.2s ease,
+			color 0.2s ease,
+			transform 0.2s ease;
 	}
 
-	.btn-rate.up:hover {
-		background: var(--success);
+	.btn-rate:hover {
+		transform: translateY(-1px);
 	}
 
-	.btn-rate.down:hover {
-		background: var(--danger);
-	}
-
+	.btn-rate.up:hover,
 	.btn-rate.up.active {
 		background: var(--success);
 		color: #fff;
 	}
 
+	.btn-rate.down:hover,
 	.btn-rate.down.active {
 		background: var(--danger);
 		color: #fff;

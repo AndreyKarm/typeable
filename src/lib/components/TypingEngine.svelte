@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
+
 	export type Mistake = {
 		char: string;
 		typed: string;
@@ -135,6 +137,10 @@
 			onfinish?.(getStats());
 		}
 	}
+
+	onDestroy(() => {
+		clearInterval(nowInterval);
+	});
 </script>
 
 <svelte:window onkeydown={handleKeydown} />

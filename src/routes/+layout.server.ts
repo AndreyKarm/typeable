@@ -1,12 +1,14 @@
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
-// import type { Actions } from './$types';
-// import { auth } from '$lib/server/auth';
 
 export const load: LayoutServerLoad = async ({ locals, url }) => {
-  const publicRoutes = ['/login', '/register', '/banned', '/goodbye'];
-  if (publicRoutes.some((route) => url.pathname.startsWith(route))) {
-    return {};
+  const publicRoutes = ['/login', '/register', '/banned', '/goodbye', '/'];
+  const isPublicRoute = publicRoutes.includes(url.pathname);
+
+  if (isPublicRoute) {
+    return {
+      user: locals.user
+    };
   }
 
   if (!locals.user) {
@@ -21,12 +23,3 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
     user: locals.user
   };
 };
-
-// export const actions: Actions = {
-//   signOut: async (event) => {
-//     await auth.api.signOut({
-//       headers: event.request.headers
-//     });
-//     return redirect(302, '/');
-//   }
-// };

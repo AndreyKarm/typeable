@@ -44,7 +44,7 @@
 		transition:fade={{ duration: 300 }}
 		onclick={handleClick}
 	>
-		<div class={['modal-content', class_]} transition:fly={{ y: 20, duration: 300 }}>
+		<div class={['modal-content', 'container', class_]} transition:fly={{ y: 20, duration: 300 }}>
 			{#if title || onClose}
 				<div class="modal-header">
 					<h2>{title || ''}</h2>
