@@ -24,6 +24,7 @@
 
 	{@render children?.()}
 
+	<!-- Form Actions -->
 	<div class="form-actions">
 		<button type="button" class="button cancel" onclick={onCancel}>Cancel</button>
 		<button type="button" class="button delete" onclick={onConfirm}>Yes</button>

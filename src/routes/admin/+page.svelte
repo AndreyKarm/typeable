@@ -13,7 +13,6 @@
 			<p>Create, edit, or delete typing exercises.</p>
 		</a>
 
-		<!-- You can easily add more admin links here -->
 		<a href={resolve('/admin/users')} class="panel admin-card">
 			<div class="icon">👥</div>
 			<h3>User Management</h3>
@@ -48,7 +47,7 @@
 	.admin-card:hover {
 		transform: translateY(-5px);
 		border-color: var(--accent);
-		text-decoration: none; /* Override global link styles */
+		text-decoration: none;
 	}
 
 	.icon {

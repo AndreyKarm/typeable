@@ -3,6 +3,7 @@
 
 	let { open, onClose, userId, userName } = $props();
 
+	// Stats
 	interface UserStats {
 		xp: number;
 		streak: number;
@@ -10,9 +11,11 @@
 		totalTyped: number;
 	}
 
+	// State
 	let stats = $state<UserStats | null>(null);
 	let isLoading = $state(false);
 
+	// Fetch stats when the userId changes
 	$effect(() => {
 		if (open && userId) {
 			fetchStats();
@@ -21,6 +24,7 @@
 		}
 	});
 
+	// Fetch stats
 	async function fetchStats() {
 		isLoading = true;
 		try {
@@ -45,6 +49,7 @@
 	}
 </script>
 
+<!-- Modal -->
 <Modal {open} {onClose} class="container" title={userName ?? 'User Stats'}>
 	{#if isLoading}
 		<p>Loading stats...</p>

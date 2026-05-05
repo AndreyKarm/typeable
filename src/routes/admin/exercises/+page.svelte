@@ -7,6 +7,7 @@
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
+	// Initialize the search state
 	let search = $state('');
 	let editingId = $state<number | null>(null);
 	let formContent = $state('');
@@ -15,6 +16,7 @@
 	let deleteTarget = $state<number | null>(null);
 	let deleteForm: HTMLFormElement;
 
+	// Filter the exercises based on the search query
 	const filtered = $derived(
 		data.exercises.filter((e) => e.content.toLowerCase().includes(search.toLowerCase()))
 	);
@@ -32,6 +34,7 @@
 		formTime = 30;
 	}
 
+	// Reset the form state when the form is submitted
 	$effect(() => {
 		if (form?.success) {
 			formContent = '';

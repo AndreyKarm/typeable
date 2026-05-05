@@ -28,7 +28,8 @@ An AI-powered typing practice platform built with Svelte 5, Drizzle ORM, and Bet
 Clone the repository and install dependencies:
 
 ``` bash
-git clone https://github.com/AndreyKarm/typeable.git
+git clone https://github.com/AndreyKarm/typeable.git # If not downloaded already
+
 cd typeable
 bun install
 

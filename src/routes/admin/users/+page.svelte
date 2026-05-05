@@ -6,16 +6,20 @@
 
 	let { data }: { data: PageData } = $props();
 
+	// Initialize the users state
 	let users = $state<typeof data.users>([]);
 
+	// Initialize the search state
 	$effect(() => {
 		users = data.users.map((u) => ({ ...u }));
 	});
 
+	// Initialize the search state
 	let search = $state('');
 	let loadingId = $state<string | null>(null);
 	let expandedIds = $state<Record<string, boolean>>({});
 
+	// Filter the users based on the search query
 	const filtered = $derived(
 		users.filter(
 			(u) =>
@@ -24,6 +28,7 @@
 		)
 	);
 
+	// Format the date string
 	const formatDate = (dateString: string | Date) => {
 		return new Date(dateString).toLocaleDateString(undefined, {
 			month: 'short',
@@ -32,15 +37,19 @@
 		});
 	};
 
+	// Update the role of a user
 	async function updateRole(u: (typeof users)[number]) {
+		// Get the original user object
 		const original = data.users.find((orig) => orig.id === u.id);
 		if (!original) return;
 
+		// Check if the user has changed
 		const hasChanged =
 			u.role !== original?.role ||
 			u.banned !== original?.banned ||
 			(u.notes ?? '') !== (original?.notes ?? '');
 
+		// If the user has not changed, return
 		if (!hasChanged) return;
 
 		loadingId = u.id;
@@ -52,6 +61,7 @@
 		formData.append('notes', u.notes ?? '');
 
 		try {
+			// Send a POST request to the server to update the user
 			const response = await fetch('?/updateUser', {
 				method: 'POST',
 				body: formData

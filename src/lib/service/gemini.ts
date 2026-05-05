@@ -41,19 +41,24 @@ export async function generateCustomExercise(mistakes: Mistake[]) {
   }
 }
 
+// Aggregate mistakes by character
 function aggregateErrors(mistakes: Mistake[]) {
+  // Count the number of mistakes for each character
   const counts: Record<string, number> = {};
 
+  // Iterate over the mistakes and count the number of mistakes for each character
   mistakes.forEach((m) => {
     const key = m.char;
     counts[key] = (counts[key] || 0) + 1;
   });
 
+  // Sort the characters by count and return the top 5 sorted characters
   const sortedErrors = Object.entries(counts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([char, count]) => `${char} (${count} errors)`)
     .join(', ');
 
+  // If there are no mistakes, return "none (general practice)"
   return sortedErrors.length > 0 ? sortedErrors : "none (general practice)";
 }

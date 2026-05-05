@@ -18,6 +18,7 @@
 		children: Snippet;
 	} = $props();
 
+	// Handle the escape key
 	$effect(() => {
 		if (open) document.body.style.overflow = 'hidden';
 		else document.body.style.overflow = '';
@@ -26,10 +27,12 @@
 		};
 	});
 
+	// Handle the escape key
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') onClose?.();
 	}
 
+	// Handle click outside of the modal
 	function handleClick(e: MouseEvent) {
 		if (e.target === e.currentTarget) onClose?.();
 	}
@@ -44,6 +47,7 @@
 		transition:fade={{ duration: 300 }}
 		onclick={handleClick}
 	>
+		<!-- Modal -->
 		<div class={['modal-content', 'container', class_]} transition:fly={{ y: 20, duration: 300 }}>
 			{#if title || onClose}
 				<div class="modal-header">

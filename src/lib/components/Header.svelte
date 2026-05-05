@@ -5,11 +5,14 @@
 	import { cubicOut } from 'svelte/easing';
 	import { slide } from 'svelte/transition';
 
+	// Props
 	let { user }: { user: App.Locals['user'] } = $props();
 
+	// State
 	let isOpen = $state(false);
 	let menuContainer: HTMLElement | null = $state(null);
 
+	// Handle the escape key
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') isOpen = false;
 	}
@@ -60,10 +63,12 @@
 					<p>{user.name}</p>
 					<a href={resolve('/profile')}>Profile</a>
 					<a href={resolve('/options')}>Options</a>
+					<!-- Admin panel link -->
 					{#if user?.role === 'admin'}
 						<a href={resolve('/admin')} style="color: var(--accent);">Admin Panel</a>
 					{/if}
 					<hr />
+					<!-- Sign out form -->
 					<form method="post" action="/?/signOut">
 						<button class="danger">Sign out</button>
 					</form>

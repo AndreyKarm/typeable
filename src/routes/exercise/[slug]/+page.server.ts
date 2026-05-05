@@ -10,15 +10,19 @@ import { and, eq, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
+  // Get the exercise ID from the URL
   const id = Number(params.slug);
   if (isNaN(id)) throw error(404, 'Invalid Exercise ID');
 
+  // Get the exercise from the database
   const ex = await db.query.exercise.findFirst({
     where: eq(exercise.id, id)
   });
 
+  // If the exercise is not found, throw a 404 error
   if (!ex) throw error(404, 'Exercise not found');
 
+  // Get the user rating for the exercise
   let userRating = 0;
   if (locals.user) {
     const existing = await db.query.exerciseRating.findFirst({
@@ -27,13 +31,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         eq(exerciseRating.exerciseId, id)
       )
     });
-    userRating = existing?.isLiked ?? 0;
+    userRating = existing?.isLiked ?? 0; // If the user has already rated the exercise, use their rating
   }
 
+  // Return the exercise and user rating
   return { exercise: ex, userRating };
 };
 
 export const actions: Actions = {
+  // Save session function triggers when user clicks on the save session button
   save: async ({ request, locals }) => {
     if (!locals.user) return fail(401, { message: 'Unauthorized' });
 
@@ -43,19 +49,21 @@ export const actions: Actions = {
     const exerciseId = Number(formData.get('exerciseId'));
     const errors = JSON.parse(String(formData.get('errors') ?? '[]'));
 
-    // Calculate how many characters were typed in this session
-    // This is needed for totalTyped
+    // Calculate how many characters were typed in this session (This is needed for totalTyped)
     const charCount = Number(formData.get('charCount')) || 0;
 
+    // Check if the stats are valid
     if ([wpm, accuracy, exerciseId].some(isNaN)) {
       return fail(400, { message: 'Invalid stats' });
     }
 
+    // Calculate the XP earned based on the stats
     const lengthModifier = Math.max(1, charCount / 10);
     const xpEarned = Math.max(1, Math.round(wpm * (accuracy / 100) * lengthModifier));
 
+    // Save the session to the database
     await db.transaction(async (tx) => {
-      // 1. Save Session
+      // 1. Save the session
       await tx.insert(typingSession).values({
         userId: locals.user!.id,
         exerciseId,
@@ -84,9 +92,9 @@ export const actions: Actions = {
         .onConflictDoUpdate({
           target: userStats.userId,
           set: {
-            totalTyped: sql`${userStats.totalTyped} + ${charCount}`,
-            avgWpm: sql`(${userStats.avgWpm} + ${wpm}) / 2`,
-            xp: sql`${userStats.xp} + ${xpEarned}`,
+            totalTyped: sql`${userStats.totalTyped} + ${charCount}`,  // Update totalTyped
+            avgWpm: sql`(${userStats.avgWpm} + ${wpm}) / 2`,          // Update avgWpm 
+            xp: sql`${userStats.xp} + ${xpEarned}`,                   // Update xp 
             streak: sql`
               CASE 
                 WHEN COALESCE(${userStats.lastPlayedAt}, '1970-01-01'::timestamp)::date = CURRENT_DATE THEN ${userStats.streak}
@@ -98,20 +106,24 @@ export const actions: Actions = {
         });
     });
 
+    // Return the success message and the XP earned
     return { success: true, xpEarned };
   },
 
   rate: async ({ request, locals }) => {
+    // Check if the user is logged in
     if (!locals.user) return fail(401, { message: 'Unauthorized' });
 
     const formData = await request.formData();
     const exerciseId = Number(formData.get('exerciseId'));
     const newRating = Number(formData.get('rating')); // 1 or -1
 
+    // Check if the exercise ID and rating are valid
     if (isNaN(exerciseId) || (newRating !== 1 && newRating !== -1)) {
       return fail(400, { message: 'Invalid input' });
     }
 
+    // Save the rating to the database
     await db.transaction(async (tx) => {
       // 1. Get existing rating
       const existing = await tx.query.exerciseRating.findFirst({
@@ -157,6 +169,7 @@ export const actions: Actions = {
       }
     });
 
+    // Return the success message
     return { success: true };
   }
 };

@@ -5,9 +5,8 @@ import { eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
-  if (!locals.user) {
-    throw redirect(302, '/login');
-  }
+  // Check if the user is logged in
+  if (!locals.user) { throw redirect(302, '/login') }
 
   // Fetch the specific exercise from the URL params
   const exerciseData = await db.query.exercise.findFirst({
@@ -18,6 +17,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     throw error(404, 'Exercise not found');
   }
 
+  // Return the user ID, user name, room ID, and exercise data
   return {
     userId: locals.user.id,
     userName: locals.user.name,

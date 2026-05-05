@@ -12,16 +12,17 @@
 	let formElement = $state<HTMLFormElement | undefined>(undefined);
 	let hasSubmitted = $state(false);
 
+	// States
 	let timeLeft = $state(0);
 	let isStarted = $state(false);
 	let isPaused = $state(false);
 	let timerInterval: ReturnType<typeof setInterval> | undefined;
 	let userRating = $state(0);
-
 	let lastStats = $state<TypingStats | null>(null);
 	let isFinished = $state(false);
 	let typingEngineKey = $state(0);
 
+	// Reset the state
 	function resetState() {
 		clearInterval(timerInterval);
 		timeLeft = data.exercise.time;
@@ -33,15 +34,18 @@
 		userRating = data.userRating;
 	}
 
+	// Restart the exercise
 	function restartExercise() {
 		resetState();
 		typingEngineKey++;
 	}
 
+	// Reset the state when the exercise changes
 	$effect(() => {
 		if (data.exercise.id) resetState();
 	});
 
+	// Clear the timer when the exercise is finished
 	$effect(() => {
 		if (isFinished) clearInterval(timerInterval);
 	});

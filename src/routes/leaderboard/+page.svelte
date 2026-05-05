@@ -11,17 +11,22 @@
 
 	let { data }: { data: { leaders: Leader[] } } = $props();
 
+	// Sorting state
 	let sortColumn = $state<keyof Leader>('rank');
 	let sortDirection = $state<'asc' | 'desc'>('asc');
 
+	// User modal state
 	let isUserModalOpen = $state(false);
 	let activeUserId = $state<string | null>(null);
 	let activeUserName = $state<string | null>(null);
 
+	// Sort the leaders based on the sortColumn and sortDirection
 	function toggleSort(column: keyof Leader) {
 		if (sortColumn === column) {
+			// Toggle sortDirection
 			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 		} else {
+			// Set sortColumn and sortDirection
 			sortColumn = column;
 			sortDirection = 'desc';
 		}
@@ -33,15 +38,19 @@
 		isUserModalOpen = true;
 	}
 
+	// Sort the leaders based on the sortColumn and sortDirection
 	let sortedLeaders = $derived(
 		[...data.leaders].sort((a, b) => {
 			const valA = a[sortColumn];
 			const valB = b[sortColumn];
 
+			// If either value is undefined, return 0
 			if (valA === undefined || valB === undefined) return 0;
 
+			// If both values are strings, compare them alphabetically
 			const modifier = sortDirection === 'asc' ? 1 : -1;
 
+			// If both values are numbers, subtract them and multiply by the modifier
 			if (typeof valA === 'string' && typeof valB === 'string') {
 				return valA.localeCompare(valB) * modifier;
 			}

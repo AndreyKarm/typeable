@@ -17,6 +17,7 @@
 		'most_played' | 'likes' | 'dislikes' | 'shortest_time' | 'longest_time' | 'oldest' | 'newest'
 	>('most_played');
 
+	// User modal state
 	let isUserModalOpen = $state(false);
 	let activeUserId = $state<string | null>(null);
 	let activeUserName = $state<string | null>(null);

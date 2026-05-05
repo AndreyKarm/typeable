@@ -10,6 +10,7 @@
 
 	let { data } = $props();
 
+	// WebSocket connection
 	let ws: WebSocket;
 	let gameState = $state<'waiting' | 'ready' | 'countdown' | 'racing' | 'finished'>('waiting');
 	let countdown = $state(3);
@@ -28,16 +29,21 @@
 		}
 	});
 
+	// Connect to the WebSocket server
 	onMount(() => {
+		// Construct the WebSocket URL
 		ws = new WebSocket(`ws://localhost:3001?roomId=${data.roomId}&userId=${data.userId}`);
 
+		// Handle incoming messages from the WebSocket server
 		ws.onmessage = (event) => {
 			const msg = JSON.parse(event.data);
 
+			// If the player count is 2 and the game is waiting, set the game state to ready
 			if (msg.type === 'player_count' && msg.count >= 2 && gameState === 'waiting') {
 				gameState = 'ready';
 			}
 
+			// If the game is waiting, start the countdown
 			if (msg.type === 'start_countdown') {
 				gameState = 'countdown';
 				countdown = 3;
@@ -49,10 +55,12 @@
 				}, 1000);
 			}
 
+			// If the opponent updates their stats, update the opponent stats
 			if (msg.type === 'opponent_update' && msg.userId !== data.userId) {
 				opponent = { ...opponent, wpm: msg.wpm, accuracy: msg.accuracy, progress: msg.progress };
 			}
 
+			// If the opponent finishes, update the opponent stats and display a toast
 			if (msg.type === 'opponent_finished' && msg.userId !== data.userId) {
 				opponent = {
 					...opponent,
@@ -61,15 +69,18 @@
 					progress: 100,
 					finished: true
 				};
+				// If the game is racing, display a toast
 				if (gameState === 'racing') toast.error('Opponent finished!');
 			}
 		};
 	});
 
+	// Handle updates from the TypingEngine
 	function handleUpdate(stats: TypingStats) {
 		wpm = stats.wpm;
 		accuracy = stats.accuracy;
 		progress = stats.progress;
+		// Send the updated stats to the WebSocket server
 		ws.send(
 			JSON.stringify({
 				type: 'typing_update',
@@ -81,11 +92,13 @@
 		);
 	}
 
+	// Handle finish events from the TypingEngine
 	function handleFinish(stats: TypingStats) {
 		wpm = stats.wpm;
 		accuracy = stats.accuracy;
 		progress = stats.progress;
 		gameState = 'finished';
+		// Send the finish event to the WebSocket server
 		ws.send(
 			JSON.stringify({
 				type: 'finish',
@@ -95,6 +108,7 @@
 		);
 	}
 
+	// Send a ready message to the WebSocket server
 	function readyUp() {
 		ws.send(JSON.stringify({ type: 'ready' }));
 		gameState = 'waiting';

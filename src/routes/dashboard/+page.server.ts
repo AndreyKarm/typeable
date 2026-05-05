@@ -6,14 +6,15 @@ import { error } from '@sveltejs/kit';
 const REQUIRED_AI_EXERCISES = 10;
 
 export async function load({ locals }) {
+  // Check if the user is logged in
   if (!locals.user) throw error(401, 'Unauthorized');
 
-  // 1. Fetch static user stats (e.g., xp, streak)
+  // Fetch the user stats and typing session metrics
   const stats = await db.query.userStats.findFirst({
     where: eq(userStats.userId, locals.user.id),
   });
 
-  // 2. Fetch Aggregated metrics from typing sessions
+  // If there are no stats, return an empty object
   const [metrics] = await db
     .select({
       totalSessions: count(typingSession.id),
@@ -21,13 +22,13 @@ export async function load({ locals }) {
       avgAccuracy: avg(typingSession.accuracy),
     })
     .from(typingSession)
-    .where(eq(typingSession.userId, locals.user.id));
+    .where(eq(typingSession.userId, locals.user.id)); // Filter by the user ID
 
-  // 3. Fetch Recent Activity
+  // Fetch the recent sessions
   const recentSessions = await db.query.typingSession.findMany({
     where: eq(typingSession.userId, locals.user.id),
     orderBy: [desc(typingSession.createdAt)],
-    limit: 5,
+    limit: 5, // Limit to 5 sessions
     with: { exercise: true }
   });
 
@@ -35,6 +36,7 @@ export async function load({ locals }) {
   return {
     aiTestRequired: REQUIRED_AI_EXERCISES,
     stats: {
+      // Merge the fetched stats with the cached stats
       ...stats,
       totalSessions: metrics?.totalSessions ?? 0,
       highestWpm: metrics?.highestWpm ?? 0,
@@ -44,6 +46,7 @@ export async function load({ locals }) {
       totalTyped: stats?.totalTyped ?? 0,
       streak: stats?.streak ?? 0,
     },
+    // Filter the recent sessions to only include exercises that the user has completed
     recentSessions
   };
 }

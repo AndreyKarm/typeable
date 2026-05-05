@@ -18,6 +18,7 @@ export const actions: Actions = {
 		const password = formData.get('password')?.toString() ?? '';
 
 		try {
+			// Sign in the user with their email and password
 			await auth.api.signInEmail({
 				body: {
 					email,
@@ -26,9 +27,11 @@ export const actions: Actions = {
 				}
 			});
 		} catch (error) {
+			// If the error is an APIError, return a 400 status code with the error message
 			if (error instanceof APIError) {
 				return fail(400, { message: error.message || 'Signin failed' });
 			}
+			// If the error is not an APIError, return a 500 status code with the error message
 			return fail(500, { message: 'Unexpected error' });
 		}
 
@@ -41,6 +44,7 @@ export const actions: Actions = {
 		const name = formData.get('name')?.toString() ?? '';
 
 		try {
+			// Sign up the user with their email and password
 			await auth.api.signUpEmail({
 				body: {
 					email,
@@ -50,12 +54,15 @@ export const actions: Actions = {
 				}
 			});
 		} catch (error) {
+			// If the error is an APIError, return a 400 status code with the error message
 			if (error instanceof APIError) {
 				return fail(400, { message: error.message || 'Registration failed' });
 			}
+			// If the error is not an APIError, return a 500 status code with the error message
 			return fail(500, { message: 'Unexpected error' });
 		}
 
+		// Redirect the user to the dashboard page
 		return redirect(302, '/');
 	}
 };

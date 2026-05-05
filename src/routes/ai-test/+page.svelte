@@ -6,9 +6,12 @@
 
 	onMount(async () => {
 		try {
+			// Send a POST request to the server to generate an exercise
 			const res = await fetch('/api/generate-exercise', { method: 'POST' });
+			// Check if the response is successful
 			const data = await res.json();
 
+			// If the response is successful, navigate to the exercise page
 			if (data.exerciseId) {
 				goto(resolve(`/exercise/${data.exerciseId}`));
 			}

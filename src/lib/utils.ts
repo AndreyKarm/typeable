@@ -1,5 +1,6 @@
 import toast from 'svelte-5-french-toast';
 
+// Copy text to clipboard
 export async function copyToClipboard(text: string | number) {
   try {
     await navigator.clipboard.writeText(text.toString());
@@ -10,4 +11,5 @@ export async function copyToClipboard(text: string | number) {
   }
 }
 
+// Sleep for a specified amount of time
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
