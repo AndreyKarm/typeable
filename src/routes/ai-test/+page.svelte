@@ -4,15 +4,12 @@
 	import { resolve } from '$app/paths';
 	import toast from 'svelte-5-french-toast';
 
-	const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 	onMount(async () => {
 		try {
 			const res = await fetch('/api/generate-exercise', { method: 'POST' });
 			const data = await res.json();
 
 			if (data.exerciseId) {
-				await sleep(100000);
 				goto(resolve(`/exercise/${data.exerciseId}`));
 			}
 		} catch (e) {

@@ -8,6 +8,7 @@ export async function generateCustomExercise(mistakes: Mistake[]) {
 
   try {
     const model = await client.llm.model("mistralai/ministral-3-3b");
+    // const model = await client.llm.model("qwen/qwen3.6-27b");
 
     const messages = [
       {
@@ -38,8 +39,8 @@ export async function generateCustomExercise(mistakes: Mistake[]) {
     const cleaned = prediction.content
       .replace(/\*\*/g, '')    // Remove bold (**)
       .replace(/\*/g, '')      // Remove italics (*)
-      .replace(/—/g, ' - ')     // Replace em-dash (—) with a standard hyphen
-      .replace(/’/g, "'")     // Replace (’) with (')
+      .replace(/—/g, ' - ')    // Replace em-dash (—) with a standard hyphen
+      .replace(/’/g, "'")      // Replace (’) with (')
       .replace(/\s+/g, ' ')    // Clean up multiple spaces
       .trim();
 

@@ -9,3 +9,5 @@ export async function copyToClipboard(text: string | number) {
     toast.error('Failed to copy to clipboard.');
   }
 }
+
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

@@ -20,10 +20,8 @@ An AI-powered typing practice platform built with Svelte 5, Drizzle ORM, and Bet
 
 ## 1. Prerequisites
 
-- Node.js (v22+)
-- Bun (for the websockets service)
-- pnpm
-- Docker (to run the database)
+- [Bun](https://bun.com/docs/installation)
+- [Docker](https://docs.docker.com/engine/install/)
 
 ## 2. Installation
 
@@ -32,7 +30,7 @@ Clone the repository and install dependencies:
 ``` bash
 git clone https://github.com/AndreyKarm/typeable.git
 cd typeable
-pnpm install
+bun install
 
 cd websockets
 bun install
@@ -52,10 +50,10 @@ Start the PostgreSQL database container and run migrations:
 
 ``` bash
 # Start the database container
-pnpm db:start
+bun run db:start
 
 # Run migrations to set up tables
-pnpm db:migrate
+bun run db:push
 ```
 
 ## 5. Development
@@ -63,7 +61,7 @@ pnpm db:migrate
 Terminal 1 (SvelteKit Frontend):
 
 ``` bash
-pnpm dev
+bun run dev
 ```
 
 Terminal 2 (Websocket Service):
@@ -99,3 +97,7 @@ bun run dev
 
 - The main app is configured for Node.js deployment using @sveltejs/adapter-node.
 - The websocket service requires a production-ready Bun environment (or containerized Bun runtime) to execute src/index.ts.
+
+## Additional Resources
+
+[Sample Quotes to Populate the Database](https://www.kaggle.com/datasets/manann/quotes-500k?select=quotes.csv)

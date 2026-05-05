@@ -21,7 +21,7 @@ export const exercise = pgTable('exercise', {
 
   // Metrics (Cached for performance)
   timesPlayed: integer('times_played').default(0).notNull(),
-  avgScore: real('avg_score').default(0).notNull(), // using 'real' for floating point
+  avgScore: real('avg_score').default(0).notNull(),
   likes: integer('likes').default(0).notNull(),
   dislikes: integer('dislikes').default(0).notNull(),
 
